@@ -67,7 +67,11 @@ PR 마다 두 워크플로우가 돈다 — 둘 다 Claude 기반이고 ubuntu �
 - `.github/workflows/claude-code-review.yml` — 변경분 코드 리뷰
 - `.github/workflows/docs-freshness.yml` — 변경분 대비 낡은 문서 탐지
 
-**필요 설정**: repo secret `ANTHROPIC_API_KEY`. 없으면 워크플로우는 실패한다.
+**필요 설정** (둘 다 repo secret):
+- `CLAUDE_CODE_OAUTH_TOKEN` — 구독(Max/Pro) 기반 인증. 로컬에서
+  `claude setup-token` 으로 발급한다. API 키를 따로 발급받지 않아도 된다.
+- `GITHUB_TOKEN` 은 워크플로우가 자동 제공하지만 **명시 전달이 필요**하다 —
+  안 주면 액션이 Claude GitHub App 설치를 요구하며 401 로 실패한다.
 
 빌드·테스트는 CI 에서 돌리지 않는다 — 병합 전 로컬 게이트(위 3개 커맨드)로 확인한다.
 문서 정합성 검사를 규칙 스크립트로 만들지 마라: product 목록·심볼을 하드코딩한
