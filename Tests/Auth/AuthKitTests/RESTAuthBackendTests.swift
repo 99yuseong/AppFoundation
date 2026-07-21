@@ -1,6 +1,6 @@
 //
 //  RESTAuthBackendTests.swift
-//  AppFoundation / AuthKitRESTTests
+//  AppFoundation / AuthKitTests
 //
 //  URLProtocol 스텁 + InMemorySessionStore 로 표준 계약 형태·에러 매핑·
 //  세션 저장·이벤트 방출을 검증한다. URLProtocol 핸들러가 전역 상태라
@@ -10,7 +10,6 @@
 import Foundation
 import Testing
 @testable import AuthKit
-@testable import AuthKitREST
 
 @Suite("RESTAuthBackend", .serialized)
 struct RESTAuthBackendTests {

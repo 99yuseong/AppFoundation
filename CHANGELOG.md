@@ -3,8 +3,8 @@
 ## 0.3.0 (2026-07-21)
 
 ### 추가
-- `AuthKitREST`: 일반(자체) 서버용 백엔드 (외부 의존 zero) — 표준 REST 계약
-  (`docs/auth/08-custom-backend.md`), `RESTSession`, `SessionStoring`
+- `RESTAuthBackend`: 일반(자체) 서버용 백엔드 (외부 의존 zero라 `AuthKit` 에 내장) —
+  표준 REST 계약 (`docs/auth/08-custom-backend.md`), `RESTSession`, `SessionStoring`
   (Keychain 기본/InMemory), 계약이 다른 서버용 encode/decode 오버라이드
 - 개방형 provider: `AuthCredential.custom(provider:parameters:)` /
   `WithdrawalCredential.custom` — 앱 정의 provider 를 kit 수정 없이 추가
@@ -13,6 +13,7 @@
   (주입 순서 = 노출 순서)
 - `SocialLoginButtonStack`(SwiftUI) / `SocialLoginUIButtonStack`(UIKit) —
   `loginOptions` 를 받아 등록된 provider 만 노출
+- `SocialLoginBranding.Logo.image`/`.asset(_:)` — 이미지 에셋 로고 지원
 - 각 모듈 최상단 + 루트 `CLAUDE.md` — 모듈 책임·경계·컨벤션 명시
 - `docs/auth/08-custom-backend.md` — 자체 서버 계약(서버 id_token 검증 포함),
   `AuthBackend` 직접 구현, 커스텀 provider 확장 가이드
@@ -28,7 +29,14 @@
   `AppleAuthProvider(branding: .apple(.whiteOutline))`)
 - `AuthProvider` 에 `branding` 요구사항 추가 — 직접 구현한 provider 는 branding
   프로퍼티를 추가해야 함
-- 디렉토리 재편: `Sources/Auth/{Core,Providers,Backends}/` (product 이름·API 불변)
+- 기본 로고 교체: Google 은 공식 에셋(Doran DesignGuide 이식), Kakao 는 SF Symbol
+  `message.fill`(TumTumRead 와 동일). 이에 따라 `SocialLoginLogo` 의
+  `googleSegments`/`kakaoBubblePath`(CGPath 근사)와 4색 상수 제거
+- 디렉토리 재편: `Sources/Auth/{Core,Providers,Backends}/` (폴더 이동만 — API 불변)
+- `AuthKitREST` product 제거 — `AuthKit` 타깃에 흡수(product 7 → 6).
+  `RESTAuthBackend` 는 이제 `import AuthKit` 으로 쓴다.
+  **타깃 분리 기준은 계층이 아니라 외부 SDK 경계** — 의존성 없는 `Core/AuthKit` 과
+  `Backends/AuthKitREST` 를 한 타깃으로 묶었다(폴더는 계층대로 유지)
 
 ## 0.2.0 (2026-07-21)
 

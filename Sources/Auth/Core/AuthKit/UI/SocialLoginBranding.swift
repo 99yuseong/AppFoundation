@@ -30,8 +30,17 @@ public struct SocialLoginBranding: Sendable {
         /// color 가 nil 이면 branding 의 `foreground` 로 채운다.
         case paths(@Sendable (CGRect) -> [(path: CGPath, color: UIColor?)])
 
+        /// 이미지 에셋 로고 — 브랜드 가이드라인이 원본 에셋 사용을 요구할 때
+        /// (예: Google G). 원본 색을 유지하려 `.alwaysOriginal` 로 렌더한다.
+        case image(UIImage)
+
         public static func sfSymbol(_ name: String) -> Logo {
             .sfSymbol(name: name, verticalOffset: 0)
+        }
+
+        /// AuthKit 번들의 이미지 에셋을 이름으로 참조한다.
+        public static func asset(_ name: String) -> Logo {
+            .image(UIImage(named: name, in: .module, compatibleWith: nil) ?? UIImage())
         }
     }
 
@@ -71,18 +80,17 @@ extension SocialLoginBranding {
         foreground: SocialLoginLogo.BrandColor.googleForeground,
         background: .white,
         border: SocialLoginLogo.BrandColor.googleBorder,
-        logo: .paths { rect in
-            SocialLoginLogo.googleSegments(in: rect).map { ($0.path, $0.color) }
-        }
+        // 공식 G 로고 에셋 (Doran DesignGuide 에서 이식) — 구글 브랜드
+        // 가이드라인상 로고는 재현하지 않고 원본 에셋을 쓴다.
+        logo: .asset("GoogleLogo")
     )
 
     public static let kakao = SocialLoginBranding(
         title: String(localized: "social.login.kakao", bundle: .module),
         foreground: SocialLoginLogo.BrandColor.kakaoForeground,
         background: SocialLoginLogo.BrandColor.kakaoBackground,
-        logo: .paths { rect in
-            [(SocialLoginLogo.kakaoBubblePath(in: rect), nil)]
-        }
+        // TumTumRead 와 동일하게 SF Symbol 말풍선을 쓴다.
+        logo: .sfSymbol("message.fill")
     )
 }
 

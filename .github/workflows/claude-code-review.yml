@@ -1,0 +1,65 @@
+name: Claude 코드 리뷰
+
+# PR 의 변경분을 Claude 가 리뷰한다.
+#
+# 러너는 ubuntu 를 쓴다 — 리뷰는 코드 읽기라 Xcode 가 필요 없다.
+# (private repo 에서 macOS 러너는 분당 10배 과금)
+# 빌드·테스트는 CI 에서 돌리지 않는다: 병합 전 로컬 게이트로 확인한다.
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  id-token: write
+
+jobs:
+  review:
+    name: 변경분 리뷰
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          # 구독(Max/Pro) 기반 인증. 로컬에서 `claude setup-token` 으로 발급해
+          # repo secret 에 넣는다 — 별도 API 키 발급이 필요 없다.
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # 이걸 주지 않으면 Claude GitHub App 설치를 요구한다(401).
+          # 워크플로우 기본 토큰으로 충분하다 — 위 permissions 로 권한을 준다.
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # 푸시할 때마다 코멘트가 쌓이지 않게 하나를 갱신한다.
+          use_sticky_comment: "true"
+          prompt: |
+            이 PR 의 변경분을 리뷰해라. 저장소 루트와 각 모듈 최상단의
+            CLAUDE.md 에 이 프로젝트의 규칙이 있으니 먼저 읽어라.
+
+            우선순위 순으로 본다:
+
+            1. **버그·정합성**: 동시성(actor 격리·Sendable), 옵셔널 강제 언랩,
+               DTO 의 CodingKeys 누락(서버 키와 Swift 네이밍 불일치),
+               세션·토큰 수명주기 처리
+            2. **계층 규칙 위반**: Core(AuthKit)에 provider/백엔드 SDK import,
+               Provider 와 Backend 의 상호 import, 버튼 안에서 provider 분기
+               (branding 주입으로 해결해야 함 — CLAUDE.md 의 불변 규칙)
+            3. **타깃 분리 기준**: 외부 SDK 경계가 아닌 이유로 새 타깃을 만들었는가
+            4. **문서 정합성**: 이 변경으로 오래된 문서가 생겼는가
+               (docs/·README·CHANGELOG·모듈 CLAUDE.md). 특히 공개 API 이름,
+               product 목록, 조립 예시 코드가 변경분과 맞는지 확인해라.
+            5. **테스트**: 핵심 로직 변경에 테스트가 없는가. 단, 상수를 재서술하는
+               수준의 테스트는 오히려 지적해라 — 이 저장소는 핵심 로직만 테스트한다.
+
+            지침:
+            - 확실한 문제만 지적해라. 추측이면 말하지 마라.
+            - 취향 문제(네이밍 선호, 스타일)는 지적하지 마라.
+            - 지적할 게 없으면 짧게 "문제 없음"이라고만 해라.
+            - 한국어로 작성해라.
+
+            리뷰는 `gh pr comment` 로 PR 에 한 번에 남겨라.
+          claude_args: |
+            --allowedTools "Read,Grep,Glob,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*),Bash(git log:*),Bash(git diff:*)"

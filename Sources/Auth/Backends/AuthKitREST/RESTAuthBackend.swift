@@ -1,6 +1,6 @@
 //
 //  RESTAuthBackend.swift
-//  AppFoundation / AuthKitREST
+//  AppFoundation / AuthKit (Backends 계층)
 //
 //  일반(자체) 서버용 AuthBackend — 외부 의존 zero. kit 이 정의한 표준 계약을
 //  앱 서버가 구현하면 바로 붙는다(docs/auth/08-custom-backend.md 에 서버 스펙).
@@ -19,7 +19,6 @@
 //  `AuthBackend` 를 직접 구현한다(08 문서 참조).
 //
 
-import AuthKit
 import Foundation
 import os
 

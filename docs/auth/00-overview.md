@@ -1,8 +1,8 @@
 # AuthKit 개요
 
 소셜 로그인(Apple / Kakao / Google + 앱 정의 provider)을 앱에 빠르게 붙이기 위한
-모듈. 백엔드는 Supabase(`AuthKitSupabase`)와 일반 자체 서버(`AuthKitREST`)를
-제공하며, Firebase 등은 `AuthBackend` 직접 구현으로 확장한다.
+모듈. 백엔드는 Supabase(`AuthKitSupabase`)와 일반 자체 서버(`RESTAuthBackend` —
+`AuthKit` 내장)를 제공하며, Firebase 등은 `AuthBackend` 직접 구현으로 확장한다.
 
 ## 신규 앱 세팅 순서
 
@@ -29,8 +29,13 @@ Sources/Auth/
 │               AuthKitGoogle
 │               AuthKitKakao
 └── Backends/   AuthKitSupabase     credential ↔ 세션 교환 — 세션 수명주기 소유
-                AuthKitREST         (일반 자체 서버, 외부 의존 zero)
+                AuthKitREST/        RESTAuthBackend (일반 자체 서버, 외부 의존 zero)
 ```
+
+**계층 ≠ 타깃.** 계층은 디렉토리로 표현하고, 타깃(product)은 **외부 SDK 경계**에서만
+쪼갠다 — 타깃이 늘수록 빌드 그래프만 무거워진다. 그래서 의존성이 없는
+`Core/AuthKit` 과 `Backends/AuthKitREST` 는 **`AuthKit` 한 타깃**으로 묶여 있다
+(폴더는 계층대로 유지). SDK 를 물고 있는 Providers·AuthKitSupabase 만 별도 product 다.
 
 - **AuthProvider**: provider SDK 를 소유하고 로그인 UI 를 띄워 `AuthCredential`(idToken 등)을
   얻는다. 로그인 버튼 branding 도 provider 가 소유한다(생성자 주입).
@@ -43,18 +48,17 @@ Sources/Auth/
 
 | product | 계층 | 내용 | 외부 의존성 |
 |---|---|---|---|
-| `AuthKit` | Core | 코어 타입·프로토콜·오케스트레이터·Mock + 로그인 버튼(SwiftUI/UIKit) | 없음 (시스템 프레임워크만) |
+| `AuthKit` | Core + Backend | 코어 타입·프로토콜·오케스트레이터·Mock + 로그인 버튼(SwiftUI/UIKit) + **`RESTAuthBackend`**(자체 서버) | 없음 (시스템 프레임워크만) |
 | `AuthKitApple` | Provider | Apple | 없음 (AuthenticationServices) |
 | `AuthKitGoogle` | Provider | Google | GoogleSignIn-iOS |
 | `AuthKitKakao` | Provider | Kakao | kakao-ios-sdk |
 | `AuthKitSupabase` | Backend | Supabase | supabase-swift |
-| `AuthKitREST` | Backend | 일반(자체) 서버 — 표준 REST 계약 | 없음 |
 | `CoreKit` | — | Info.plist 설정 로더, TopMostPresenter | 없음 |
 
-앱은 `AuthKit` + **백엔드 하나**(`AuthKitSupabase` 또는 `AuthKitREST`) +
-**사용하는 provider product 만** 추가한다. provider 는 전부 `AuthKit{Provider}`
-대칭 규칙 — Kakao 를 안 쓰는 앱은 `AuthKitKakao` 를 추가하지 않으면 KakaoSDK 가
-링크되지 않는다.
+앱은 `AuthKit` + **사용하는 provider product 만** 추가한다. Supabase 를 쓰면
+`AuthKitSupabase` 를 더하고, 자체 서버면 `AuthKit` 에 내장된 `RESTAuthBackend` 를
+쓰므로 추가 product 가 없다. provider 는 전부 `AuthKit{Provider}` 대칭 규칙 —
+Kakao 를 안 쓰는 앱은 `AuthKitKakao` 를 추가하지 않으면 KakaoSDK 가 링크되지 않는다.
 
 ## 결정 로그
 

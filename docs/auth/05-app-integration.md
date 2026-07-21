@@ -11,7 +11,7 @@ Xcode: **File → Add Package Dependencies** → `git@github.com:{계정}/AppFou
 |---|---|
 | Apple + Kakao (예: TumTumRead) | `AuthKit`, `AuthKitSupabase`, `AuthKitApple`, `AuthKitKakao` (+`CoreKit`) |
 | Apple + Google (예: Doran) | `AuthKit`, `AuthKitSupabase`, `AuthKitApple`, `AuthKitGoogle` (+`CoreKit`) |
-| 자체 서버 백엔드 | `AuthKitSupabase` 대신 `AuthKitREST` ([08 문서](08-custom-backend.md)) |
+| 자체 서버 백엔드 | `AuthKitSupabase` 를 빼면 된다 — `RESTAuthBackend` 는 `AuthKit` 내장 ([08 문서](08-custom-backend.md)) |
 
 ### 로컬 개발 오버라이드
 

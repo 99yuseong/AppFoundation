@@ -2,7 +2,13 @@
 
 Auth 도메인의 코어 — 타입·프로토콜·오케스트레이터·로그인 버튼. provider SDK 와
 백엔드 SDK 를 전혀 모른다(시스템 프레임워크만 의존). 앱은 이 모듈의 API 로만
-Auth 를 다루고, 구현은 Providers/Backends 타겟이 공급한다.
+Auth 를 다루고, SDK 구현은 Providers/Backends 타겟이 공급한다.
+
+**타깃 범위**: `AuthKit` 타깃 = 이 폴더 + `../../Backends/AuthKitREST/`
+(`RESTAuthBackend` — 외부 의존이 없어 같은 타깃). Package.swift 에서
+`path: "Sources/Auth"` + SDK 폴더 `exclude` 방식이다.
+**타깃은 계층이 아니라 외부 SDK 경계에서만 쪼갠다** — 의존성 없는 코드를
+계층이 다르다는 이유로 새 타깃으로 분리하지 말 것(빌드 그래프만 무거워진다).
 
 ## 공개 API
 
@@ -14,7 +20,10 @@ Auth 를 다루고, 구현은 Providers/Backends 타겟이 공급한다.
 - **Service**: `DefaultAuthService`(backend + providers 조립, 주입 순서 보존)
 - **UI**: `SocialLoginBranding`/`SocialLoginOption`,
   `SocialLoginButton(Stack)`(SwiftUI) / `SocialLoginUIButton(Stack)`(UIKit),
-  `SocialLoginLogo`(CGPath 브랜드 자산), `AppleLoginStyle`
+  `SocialLoginLogo`(브랜드 색상), `AppleLoginStyle`
+  - 로고: Apple/Kakao 는 SF Symbol(`apple.logo`/`message.fill`), Google 은 공식
+    에셋(`Resources/Media.xcassets/GoogleLogo`, Doran DesignGuide 에서 이식).
+    `Logo.paths`(CGPath) 케이스는 커스텀 provider 용으로 유지.
 - **Support**: `NonceGenerator`(bias-free, SDK 엔 SHA256/백엔드엔 raw 구도)
 - **Mock**: `MockAuthService`
 - **Resources**: `Localizable.xcstrings` (ko/en/ja — 버튼 문구의 단일 원천)

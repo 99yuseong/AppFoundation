@@ -5,12 +5,15 @@ import PackageDescription
 //
 // 디렉토리 규칙: Sources/{Domain}/{Layer}/{Target}
 //   Core/                CoreKit (계층 없음 — 도메인 무관 기반)
-//   Auth/Core/           AuthKit (타입·프로토콜·오케스트레이터·버튼, SDK 무의존)
+//   Auth/Core/           AuthKit 코어 (타입·프로토콜·오케스트레이터·버튼)
 //   Auth/Providers/      AuthKitApple, AuthKitGoogle, AuthKitKakao (credential 획득)
 //   Auth/Backends/       AuthKitSupabase, AuthKitREST (credential ↔ 세션 교환)
 //   (추후)               Ads/AdsKit, Purchase/PurchaseKit, Analytics/AnalyticsKit, Push/…
 //
-// product 분리 원칙: 외부 SDK 의존이 있는 provider/백엔드는 별도 product 로 둔다.
+// 타깃 분리 기준 = 외부 SDK 의존 (계층이 아니다).
+// 계층은 디렉토리로 표현하고, 타깃은 SDK 경계에서만 쪼갠다 — 타깃이 늘수록
+// 빌드 그래프만 무거워지므로 의존성 없는 계층끼리는 한 타깃으로 묶는다.
+//   AuthKit  = Auth/Core/AuthKit + Auth/Backends/AuthKitREST (둘 다 의존성 zero)
 // SPM 은 product 단위로 링크하므로, 앱은 자기가 쓰는 provider 만 골라 추가하면
 // 안 쓰는 SDK(KakaoSDK, GoogleSignIn)가 바이너리에 딸려 오지 않는다.
 
@@ -25,7 +28,6 @@ let package = Package(
         .library(name: "AuthKitGoogle",   targets: ["AuthKitGoogle"]),
         .library(name: "AuthKitKakao",    targets: ["AuthKitKakao"]),
         .library(name: "AuthKitSupabase", targets: ["AuthKitSupabase"]),
-        .library(name: "AuthKitREST",     targets: ["AuthKitREST"]),
     ],
     dependencies: [
         // 하한 = TumTumRead 현재 pin(2.29.3). Doran(2.51.0)과 range 호환.
@@ -40,12 +42,20 @@ let package = Package(
             exclude: ["CLAUDE.md"],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
+        // Core + REST 백엔드를 한 타깃으로 묶는다 (둘 다 외부 의존 zero).
+        // path 를 Sources/Auth 로 올리고 SDK 의존이 있는 형제 폴더만 제외한다 —
+        // 계층 폴더 구조(Core/·Backends/)는 그대로 유지된다.
         .target(
             name: "AuthKit",
             dependencies: ["CoreKit"],
-            path: "Sources/Auth/Core/AuthKit",
-            exclude: ["CLAUDE.md"],
-            resources: [.process("Resources")],
+            path: "Sources/Auth",
+            exclude: [
+                "Providers",                    // 별도 타깃 (SDK 의존)
+                "Backends/AuthKitSupabase",     // 별도 타깃 (supabase-swift)
+                "Core/AuthKit/CLAUDE.md",
+                "Backends/AuthKitREST/CLAUDE.md",
+            ],
+            resources: [.process("Core/AuthKit/Resources")],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
         .target(
@@ -89,13 +99,6 @@ let package = Package(
             exclude: ["CLAUDE.md"],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
-        .target(
-            name: "AuthKitREST",
-            dependencies: ["AuthKit"],
-            path: "Sources/Auth/Backends/AuthKitREST",
-            exclude: ["CLAUDE.md"],
-            swiftSettings: [.swiftLanguageMode(.v6)]
-        ),
         .testTarget(
             name: "AuthKitTests",
             dependencies: ["AuthKit"],
@@ -105,11 +108,6 @@ let package = Package(
             name: "AuthKitSupabaseTests",
             dependencies: ["AuthKitSupabase"],
             path: "Tests/Auth/AuthKitSupabaseTests"
-        ),
-        .testTarget(
-            name: "AuthKitRESTTests",
-            dependencies: ["AuthKitREST"],
-            path: "Tests/Auth/AuthKitRESTTests"
         ),
     ]
 )

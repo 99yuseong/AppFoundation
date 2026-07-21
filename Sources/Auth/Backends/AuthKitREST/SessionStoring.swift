@@ -1,6 +1,6 @@
 //
 //  SessionStoring.swift
-//  AppFoundation / AuthKitREST
+//  AppFoundation / AuthKit (Backends 계층)
 //
 //  세션 저장 추상화. 기본은 Keychain(`KeychainSessionStore`) —
 //  테스트/프리뷰는 `InMemorySessionStore` 를 주입한다.
