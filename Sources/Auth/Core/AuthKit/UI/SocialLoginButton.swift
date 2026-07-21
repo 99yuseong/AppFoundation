@@ -118,6 +118,12 @@ private struct LogoView: View {
                     )
                 }
             }
+
+        case let .image(image):
+            // 브랜드 에셋은 원본 색 그대로 (tint 를 타지 않게 renderingMode 고정).
+            Image(uiImage: image.withRenderingMode(.alwaysOriginal))
+                .resizable()
+                .scaledToFit()
         }
     }
 }

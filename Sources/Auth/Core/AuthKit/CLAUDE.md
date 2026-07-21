@@ -20,7 +20,10 @@ Auth 를 다루고, SDK 구현은 Providers/Backends 타겟이 공급한다.
 - **Service**: `DefaultAuthService`(backend + providers 조립, 주입 순서 보존)
 - **UI**: `SocialLoginBranding`/`SocialLoginOption`,
   `SocialLoginButton(Stack)`(SwiftUI) / `SocialLoginUIButton(Stack)`(UIKit),
-  `SocialLoginLogo`(CGPath 브랜드 자산), `AppleLoginStyle`
+  `SocialLoginLogo`(브랜드 색상), `AppleLoginStyle`
+  - 로고: Apple/Kakao 는 SF Symbol(`apple.logo`/`message.fill`), Google 은 공식
+    에셋(`Resources/Media.xcassets/GoogleLogo`, Doran DesignGuide 에서 이식).
+    `Logo.paths`(CGPath) 케이스는 커스텀 provider 용으로 유지.
 - **Support**: `NonceGenerator`(bias-free, SDK 엔 SHA256/백엔드엔 raw 구도)
 - **Mock**: `MockAuthService`
 - **Resources**: `Localizable.xcstrings` (ko/en/ja — 버튼 문구의 단일 원천)

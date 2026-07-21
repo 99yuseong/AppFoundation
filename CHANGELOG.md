@@ -13,6 +13,7 @@
   (주입 순서 = 노출 순서)
 - `SocialLoginButtonStack`(SwiftUI) / `SocialLoginUIButtonStack`(UIKit) —
   `loginOptions` 를 받아 등록된 provider 만 노출
+- `SocialLoginBranding.Logo.image`/`.asset(_:)` — 이미지 에셋 로고 지원
 - 각 모듈 최상단 + 루트 `CLAUDE.md` — 모듈 책임·경계·컨벤션 명시
 - `docs/auth/08-custom-backend.md` — 자체 서버 계약(서버 id_token 검증 포함),
   `AuthBackend` 직접 구현, 커스텀 provider 확장 가이드
@@ -28,6 +29,9 @@
   `AppleAuthProvider(branding: .apple(.whiteOutline))`)
 - `AuthProvider` 에 `branding` 요구사항 추가 — 직접 구현한 provider 는 branding
   프로퍼티를 추가해야 함
+- 기본 로고 교체: Google 은 공식 에셋(Doran DesignGuide 이식), Kakao 는 SF Symbol
+  `message.fill`(TumTumRead 와 동일). 이에 따라 `SocialLoginLogo` 의
+  `googleSegments`/`kakaoBubblePath`(CGPath 근사)와 4색 상수 제거
 - 디렉토리 재편: `Sources/Auth/{Core,Providers,Backends}/` (product 이름·API 불변).
   **타깃 분리 기준은 계층이 아니라 외부 SDK 경계** — 의존성 없는 `Core/AuthKit` 과
   `Backends/AuthKitREST` 는 `AuthKit` 한 타깃으로 묶었다(폴더는 계층대로 유지)

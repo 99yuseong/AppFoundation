@@ -105,6 +105,9 @@ public final class SocialLoginUIButton: UIControl {
         logoContainer.addSubview(symbolLogoView)
         logoContainer.addSubview(drawnLogoView)
         drawnLogoView.backgroundColor = .clear
+        // SF Symbol 은 고유 크기로, 이미지 에셋(원본 200px 급)은 컨테이너에 맞춰
+        // 축소돼야 한다 — 두 경우 모두 aspect fit 으로 처리한다.
+        symbolLogoView.contentMode = .scaleAspectFit
 
         titleLabel.font = .systemFont(ofSize: 16, weight: .semibold)
 
@@ -131,6 +134,9 @@ public final class SocialLoginUIButton: UIControl {
             logoContainer.heightAnchor.constraint(equalToConstant: 18),
             symbolLogoView.centerXAnchor.constraint(equalTo: logoContainer.centerXAnchor),
             symbolCenterYConstraint,
+            // 컨테이너를 넘지 않게 상한만 건다 (SF Symbol 은 고유 크기 유지).
+            symbolLogoView.widthAnchor.constraint(lessThanOrEqualTo: logoContainer.widthAnchor),
+            symbolLogoView.heightAnchor.constraint(lessThanOrEqualTo: logoContainer.heightAnchor),
             drawnLogoView.topAnchor.constraint(equalTo: logoContainer.topAnchor),
             drawnLogoView.bottomAnchor.constraint(equalTo: logoContainer.bottomAnchor),
             drawnLogoView.leadingAnchor.constraint(equalTo: logoContainer.leadingAnchor),
@@ -171,6 +177,9 @@ public final class SocialLoginUIButton: UIControl {
             )
             symbolLogoView.tintColor = branding.foreground
             symbolCenterYConstraint.constant = verticalOffset
+            // .image 케이스에서 낮췄을 수 있으니 기본값으로 되돌린다.
+            symbolLogoView.setContentCompressionResistancePriority(.required, for: .horizontal)
+            symbolLogoView.setContentCompressionResistancePriority(.required, for: .vertical)
             symbolLogoView.isHidden = false
             drawnLogoView.isHidden = true
 
@@ -180,6 +189,17 @@ public final class SocialLoginUIButton: UIControl {
             drawnLogoView.setNeedsDisplay()
             symbolLogoView.isHidden = true
             drawnLogoView.isHidden = false
+
+        case let .image(image):
+            // 브랜드 에셋은 원본 색 그대로 (tint 를 타지 않게).
+            symbolLogoView.image = image.withRenderingMode(.alwaysOriginal)
+            symbolCenterYConstraint.constant = 0
+            // 원본 에셋은 컨테이너보다 훨씬 크다 — intrinsic size 를 양보시켜야
+            // width/height 상한 제약이 실제로 먹는다.
+            symbolLogoView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+            symbolLogoView.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
+            symbolLogoView.isHidden = false
+            drawnLogoView.isHidden = true
         }
     }
 }
