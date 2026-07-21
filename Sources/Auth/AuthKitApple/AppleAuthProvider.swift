@@ -1,16 +1,18 @@
 //
 //  AppleAuthProvider.swift
-//  AppFoundation / AuthKit
+//  AppFoundation / AuthKitApple
 //
 //  Sign in with Apple: nonce 생성, ASAuthorizationController 실행, credential 추출.
 //  Apple 시트는 이 계층이 직접 present 한다(앱의 로그인 버튼은 트리거일 뿐).
 //  `authenticate` 는 `AuthBackend` 가 교환할
 //  `.apple(idToken, rawNonce, authorizationCode, fullName, email)` 을 돌려준다.
 //
-//  시스템 프레임워크만 쓰므로 AuthKit 본체에 포함된다(별도 product 불필요).
+//  외부 SDK 의존은 없지만(AuthenticationServices 만) provider 는 전부
+//  `AuthKit{Provider}` product 라는 대칭 규칙으로 분리돼 있다.
 //
 
 import AuthenticationServices
+import AuthKit
 import Foundation
 import UIKit
 import os

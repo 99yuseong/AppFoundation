@@ -9,8 +9,8 @@ Xcode: **File → Add Package Dependencies** → `git@github.com:{계정}/AppFou
 
 | 앱 구성 | 추가할 product |
 |---|---|
-| Apple + Kakao (예: TumTumRead) | `AuthKit`, `AuthKitSupabase`, `AuthKitKakao` (+`CoreKit`) |
-| Apple + Google (예: Doran) | `AuthKit`, `AuthKitSupabase`, `AuthKitGoogle` (+`CoreKit`) |
+| Apple + Kakao (예: TumTumRead) | `AuthKit`, `AuthKitSupabase`, `AuthKitApple`, `AuthKitKakao` (+`CoreKit`) |
+| Apple + Google (예: Doran) | `AuthKit`, `AuthKitSupabase`, `AuthKitApple`, `AuthKitGoogle` (+`CoreKit`) |
 
 ### 로컬 개발 오버라이드
 
@@ -42,7 +42,8 @@ Secret.xcconfig 등에 키를 넣고 Info.plist 에 `$(KEY)` 로 연결한다:
 ```swift
 import AuthKit
 import AuthKitSupabase
-import AuthKitKakao   // 사용하는 provider 만
+import AuthKitApple   // 사용하는 provider 만
+import AuthKitKakao
 import CoreKit
 import Supabase
 

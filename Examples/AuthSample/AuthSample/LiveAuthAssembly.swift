@@ -15,6 +15,7 @@
 #if LIVE_AUTH
 
 import AuthKit
+import AuthKitApple
 import AuthKitGoogle
 import AuthKitKakao
 import AuthKitSupabase

@@ -8,7 +8,8 @@
 | product | 내용 | 외부 의존성 | 상태 |
 |---|---|---|---|
 | `CoreKit` | Info.plist 설정 로더(`ConfigValues`), `TopMostPresenter` | 없음 | ✅ |
-| `AuthKit` | Auth 코어(타입·프로토콜·`DefaultAuthService`·Mock) + Apple provider + **로그인 버튼**(SwiftUI/UIKit, ko·en·ja) | 없음 | ✅ |
+| `AuthKit` | Auth 코어(타입·프로토콜·`DefaultAuthService`·Mock) + **로그인 버튼**(SwiftUI/UIKit, ko·en·ja) | 없음 | ✅ |
+| `AuthKitApple` | Apple provider | 없음 (AuthenticationServices) | ✅ |
 | `AuthKitSupabase` | Supabase 백엔드 (`SupabaseAuthBackend`) | supabase-swift | ✅ |
 | `AuthKitGoogle` | Google provider | GoogleSignIn-iOS | ✅ |
 | `AuthKitKakao` | Kakao provider (네이티브, OIDC) | kakao-ios-sdk | ✅ |
@@ -19,7 +20,8 @@
 1. **콘솔 설정**: [docs/auth/00-overview.md](docs/auth/00-overview.md) 의 체크리스트를
    따라 Apple / Kakao / Google / Supabase 를 세팅한다.
 2. **SPM 추가**: `git@github.com:{계정}/AppFoundation.git` →
-   `AuthKit` + `AuthKitSupabase` + 사용하는 provider product.
+   `AuthKit` + `AuthKitSupabase` + 사용하는 provider product
+   (`AuthKitApple` / `AuthKitGoogle` / `AuthKitKakao` — 대칭 규칙).
 3. **조립**:
 
 ```swift

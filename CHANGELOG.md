@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0 (2026-07-21)
+
+### 변경 (breaking)
+- `AppleAuthProvider` 를 `AuthKitApple` product 로 분리 — provider 는 전부
+  `AuthKit{Provider}` 대칭 규칙. 사용 앱은 `AuthKitApple` product 추가 +
+  `import AuthKitApple` 필요
+
 ## 0.2.0 (2026-07-21)
 
 ### 추가

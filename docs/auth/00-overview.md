@@ -20,7 +20,7 @@ Supabase 기반 소셜 로그인(Apple / Kakao / Google)을 앱에 빠르게 붙
 
 ```
 AuthProvider (credential 획득)          AuthBackend (credential → 세션 교환)
-  AppleAuthProvider  (AuthKit)            SupabaseAuthBackend (AuthKitSupabase)
+  AppleAuthProvider  (AuthKitApple)       SupabaseAuthBackend (AuthKitSupabase)
   GoogleAuthProvider (AuthKitGoogle)      (추후 FirebaseAuthBackend 추가 가능)
   KakaoAuthProvider  (AuthKitKakao)
                 └──── DefaultAuthService (오케스트레이터, SDK 무의존) ────┘
@@ -34,14 +34,16 @@ AuthProvider (credential 획득)          AuthBackend (credential → 세션 교
 
 | product | 내용 | 외부 의존성 |
 |---|---|---|
-| `AuthKit` | 코어 타입·프로토콜·오케스트레이터·Mock + **Apple provider** | 없음 (시스템 프레임워크만) |
+| `AuthKit` | 코어 타입·프로토콜·오케스트레이터·Mock + 로그인 버튼(SwiftUI/UIKit) | 없음 (시스템 프레임워크만) |
+| `AuthKitApple` | Apple provider | 없음 (AuthenticationServices) |
 | `AuthKitSupabase` | Supabase 백엔드 | supabase-swift |
 | `AuthKitGoogle` | Google provider | GoogleSignIn-iOS |
 | `AuthKitKakao` | Kakao provider | kakao-ios-sdk |
 | `CoreKit` | Info.plist 설정 로더, TopMostPresenter | 없음 |
 
-앱은 `AuthKit` + `AuthKitSupabase` + **사용하는 provider 만** 추가한다.
-(예: Kakao 를 안 쓰는 앱은 `AuthKitKakao` 를 추가하지 않으면 KakaoSDK 가 링크되지 않는다)
+앱은 `AuthKit` + `AuthKitSupabase` + **사용하는 provider product 만** 추가한다.
+provider 는 전부 `AuthKit{Provider}` 대칭 규칙 — Kakao 를 안 쓰는 앱은
+`AuthKitKakao` 를 추가하지 않으면 KakaoSDK 가 링크되지 않는다.
 
 ## 결정 로그
 

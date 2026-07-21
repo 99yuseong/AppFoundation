@@ -19,6 +19,7 @@ let package = Package(
     products: [
         .library(name: "CoreKit",         targets: ["CoreKit"]),
         .library(name: "AuthKit",         targets: ["AuthKit"]),
+        .library(name: "AuthKitApple",    targets: ["AuthKitApple"]),
         .library(name: "AuthKitGoogle",   targets: ["AuthKitGoogle"]),
         .library(name: "AuthKitKakao",    targets: ["AuthKitKakao"]),
         .library(name: "AuthKitSupabase", targets: ["AuthKitSupabase"]),
@@ -40,6 +41,12 @@ let package = Package(
             dependencies: ["CoreKit"],
             path: "Sources/Auth/AuthKit",
             resources: [.process("Resources")],
+            swiftSettings: [.swiftLanguageMode(.v6)]
+        ),
+        .target(
+            name: "AuthKitApple",
+            dependencies: ["AuthKit"],
+            path: "Sources/Auth/AuthKitApple",
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
         .target(

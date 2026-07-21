@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		AF0000000000000000000031 /* AuthKit in Frameworks */ = {isa = PBXBuildFile; productRef = AF0000000000000000000021 /* AuthKit */; };
+		AF0000000000000000000036 /* AuthKitApple in Frameworks */ = {isa = PBXBuildFile; productRef = AF0000000000000000000026 /* AuthKitApple */; };
 		AF0000000000000000000032 /* AuthKitSupabase in Frameworks */ = {isa = PBXBuildFile; productRef = AF0000000000000000000022 /* AuthKitSupabase */; };
 		AF0000000000000000000033 /* AuthKitGoogle in Frameworks */ = {isa = PBXBuildFile; productRef = AF0000000000000000000023 /* AuthKitGoogle */; };
 		AF0000000000000000000034 /* AuthKitKakao in Frameworks */ = {isa = PBXBuildFile; productRef = AF0000000000000000000024 /* AuthKitKakao */; };
@@ -28,6 +29,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AF0000000000000000000031 /* AuthKit in Frameworks */,
+				AF0000000000000000000036 /* AuthKitApple in Frameworks */,
 				AF0000000000000000000032 /* AuthKitSupabase in Frameworks */,
 				AF0000000000000000000033 /* AuthKitGoogle in Frameworks */,
 				AF0000000000000000000034 /* AuthKitKakao in Frameworks */,
@@ -75,6 +77,7 @@
 			name = AuthSample;
 			packageProductDependencies = (
 				AF0000000000000000000021 /* AuthKit */,
+				AF0000000000000000000026 /* AuthKitApple */,
 				AF0000000000000000000022 /* AuthKitSupabase */,
 				AF0000000000000000000023 /* AuthKitGoogle */,
 				AF0000000000000000000024 /* AuthKitKakao */,
@@ -278,6 +281,10 @@
 		AF0000000000000000000021 /* AuthKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = AuthKit;
+		};
+		AF0000000000000000000026 /* AuthKitApple */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AuthKitApple;
 		};
 		AF0000000000000000000022 /* AuthKitSupabase */ = {
 			isa = XCSwiftPackageProductDependency;
