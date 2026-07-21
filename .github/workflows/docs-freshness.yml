@@ -29,6 +29,9 @@ jobs:
       - uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # 이걸 주지 않으면 Claude GitHub App 설치를 요구한다(401).
+          # 워크플로우 기본 토큰으로 충분하다 — 위 permissions 로 권한을 준다.
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           # 푸시할 때마다 코멘트가 쌓이지 않게 하나를 갱신한다.
           use_sticky_comment: "true"
           prompt: |
