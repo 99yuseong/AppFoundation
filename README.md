@@ -8,7 +8,7 @@
 | product | 내용 | 외부 의존성 | 상태 |
 |---|---|---|---|
 | `CoreKit` | Info.plist 설정 로더(`ConfigValues`), `TopMostPresenter` | 없음 | ✅ |
-| `AuthKit` | Auth 코어(타입·프로토콜·`DefaultAuthService`·Mock) + Apple provider | 없음 | ✅ |
+| `AuthKit` | Auth 코어(타입·프로토콜·`DefaultAuthService`·Mock) + Apple provider + **로그인 버튼**(SwiftUI/UIKit, ko·en·ja) | 없음 | ✅ |
 | `AuthKitSupabase` | Supabase 백엔드 (`SupabaseAuthBackend`) | supabase-swift | ✅ |
 | `AuthKitGoogle` | Google provider | GoogleSignIn-iOS | ✅ |
 | `AuthKitKakao` | Kakao provider (네이티브, OIDC) | kakao-ios-sdk | ✅ |
@@ -34,7 +34,17 @@ let authService: any AuthService = DefaultAuthService(
 let result = try await authService.signIn(with: .apple, presenter: nil)
 ```
 
-상세: [docs/auth/05-app-integration.md](docs/auth/05-app-integration.md)
+로그인 버튼 (브랜드 스펙 + ko/en/ja, SwiftUI/UIKit):
+
+```swift
+SocialLoginButton { signInKakao() }
+    .setProvider(.kakao)
+    .setCornerRadius(16)
+    .setIsLoading($isLoading)
+```
+
+상세: [docs/auth/05-app-integration.md](docs/auth/05-app-integration.md) ·
+동작 데모: [Examples/AuthSample](Examples/AuthSample/README.md)
 
 ## Claude 스킬로 세팅 안내 받기
 

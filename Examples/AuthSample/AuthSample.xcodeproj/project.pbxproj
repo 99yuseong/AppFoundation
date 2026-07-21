@@ -1,0 +1,301 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		AF0000000000000000000031 /* AuthKit in Frameworks */ = {isa = PBXBuildFile; productRef = AF0000000000000000000021 /* AuthKit */; };
+		AF0000000000000000000032 /* AuthKitSupabase in Frameworks */ = {isa = PBXBuildFile; productRef = AF0000000000000000000022 /* AuthKitSupabase */; };
+		AF0000000000000000000033 /* AuthKitGoogle in Frameworks */ = {isa = PBXBuildFile; productRef = AF0000000000000000000023 /* AuthKitGoogle */; };
+		AF0000000000000000000034 /* AuthKitKakao in Frameworks */ = {isa = PBXBuildFile; productRef = AF0000000000000000000024 /* AuthKitKakao */; };
+		AF0000000000000000000035 /* CoreKit in Frameworks */ = {isa = PBXBuildFile; productRef = AF0000000000000000000025 /* CoreKit */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		AF0000000000000000000004 /* AuthSample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AuthSample.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		AF0000000000000000000009 /* AuthSample */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = AuthSample; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		AF0000000000000000000007 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AF0000000000000000000031 /* AuthKit in Frameworks */,
+				AF0000000000000000000032 /* AuthKitSupabase in Frameworks */,
+				AF0000000000000000000033 /* AuthKitGoogle in Frameworks */,
+				AF0000000000000000000034 /* AuthKitKakao in Frameworks */,
+				AF0000000000000000000035 /* CoreKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		AF0000000000000000000002 = {
+			isa = PBXGroup;
+			children = (
+				AF0000000000000000000009 /* AuthSample */,
+				AF0000000000000000000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		AF0000000000000000000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AF0000000000000000000004 /* AuthSample.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		AF0000000000000000000005 /* AuthSample */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AF000000000000000000000B /* Build configuration list for PBXNativeTarget "AuthSample" */;
+			buildPhases = (
+				AF0000000000000000000006 /* Sources */,
+				AF0000000000000000000007 /* Frameworks */,
+				AF0000000000000000000008 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				AF0000000000000000000009 /* AuthSample */,
+			);
+			name = AuthSample;
+			packageProductDependencies = (
+				AF0000000000000000000021 /* AuthKit */,
+				AF0000000000000000000022 /* AuthKitSupabase */,
+				AF0000000000000000000023 /* AuthKitGoogle */,
+				AF0000000000000000000024 /* AuthKitKakao */,
+				AF0000000000000000000025 /* CoreKit */,
+			);
+			productName = AuthSample;
+			productReference = AF0000000000000000000004 /* AuthSample.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		AF0000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					AF0000000000000000000005 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+				};
+			};
+			buildConfigurationList = AF000000000000000000000A /* Build configuration list for PBXProject "AuthSample" */;
+			compatibilityVersion = "Xcode 15.0";
+			developmentRegion = ko;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				ko,
+				en,
+				ja,
+				Base,
+			);
+			mainGroup = AF0000000000000000000002;
+			packageReferences = (
+				AF0000000000000000000010 /* XCLocalSwiftPackageReference "../.." */,
+			);
+			productRefGroup = AF0000000000000000000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				AF0000000000000000000005 /* AuthSample */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		AF0000000000000000000008 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		AF0000000000000000000006 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		AF000000000000000000000C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		AF000000000000000000000D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		AF000000000000000000000E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.appfoundation.AuthSample;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		AF000000000000000000000F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.appfoundation.AuthSample;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		AF000000000000000000000A /* Build configuration list for PBXProject "AuthSample" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AF000000000000000000000C /* Debug */,
+				AF000000000000000000000D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AF000000000000000000000B /* Build configuration list for PBXNativeTarget "AuthSample" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AF000000000000000000000E /* Debug */,
+				AF000000000000000000000F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		AF0000000000000000000010 /* XCLocalSwiftPackageReference "../.." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../..;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		AF0000000000000000000021 /* AuthKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AuthKit;
+		};
+		AF0000000000000000000022 /* AuthKitSupabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AuthKitSupabase;
+		};
+		AF0000000000000000000023 /* AuthKitGoogle */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AuthKitGoogle;
+		};
+		AF0000000000000000000024 /* AuthKitKakao */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AuthKitKakao;
+		};
+		AF0000000000000000000025 /* CoreKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = CoreKit;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = AF0000000000000000000001 /* Project object */;
+}

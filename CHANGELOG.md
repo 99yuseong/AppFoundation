@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0 (2026-07-21)
+
+### 추가
+- `SocialLoginButton` (SwiftUI) / `SocialLoginUIButton` (UIKit): 소셜 로그인 버튼 —
+  `setProvider` 로 브랜드 전환(apple/google/kakao), `set~` 빌더 모디파이어
+  (`setCornerRadius`/`setHeight`/`setIsLoading` 바인딩/`setAppleStyle`/`setOnTap`/`setLoading`)
+- 로고 CGPath 공유 정의(`SocialLoginLogo`) — Kakao 말풍선, Google 4색 G (SwiftUI·UIKit 재사용)
+- Localization: ko / en / ja (`Localizable.xcstrings`, `defaultLocalization: ko`)
+- `Examples/AuthSample`: 데모 앱 (SwiftUI/UIKit 탭, Mock 기본, LiveAuthAssembly 실연결 예시)
+
 ## 0.1.0 (2026-07-21)
 
 첫 릴리스 — Auth 도메인.

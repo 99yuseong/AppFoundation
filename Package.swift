@@ -14,6 +14,7 @@ import PackageDescription
 
 let package = Package(
     name: "AppFoundation",
+    defaultLocalization: "ko",
     platforms: [.iOS(.v17)],
     products: [
         .library(name: "CoreKit",         targets: ["CoreKit"]),
@@ -38,6 +39,7 @@ let package = Package(
             name: "AuthKit",
             dependencies: ["CoreKit"],
             path: "Sources/Auth/AuthKit",
+            resources: [.process("Resources")],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
         .target(

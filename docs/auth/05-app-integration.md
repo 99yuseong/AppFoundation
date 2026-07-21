@@ -114,7 +114,34 @@ let withdrawal = try WithdrawalCredential(folding: credential)
 // → account-withdraw EF 호출 → authService.endSession()
 ```
 
-## 7. 취소 처리
+## 7. 로그인 버튼 (SwiftUI / UIKit)
+
+브랜드 스펙(색·로고·ko/en/ja 문구)이 적용된 버튼을 제공한다. provider별 타입 대신
+**`setProvider` 로 전환**하고, 설정값은 `set~` 빌더 모디파이어로 수정한다.
+
+```swift
+// SwiftUI
+@State private var isLoading = false
+
+SocialLoginButton { viewModel.signIn(.kakao) }
+    .setProvider(.kakao)          // .apple(기본) | .google | .kakao
+    .setCornerRadius(16)          // 기본 12
+    .setHeight(56)                // 기본 52
+    .setIsLoading($isLoading)     // true 면 스피너 + 비활성
+    .setAppleStyle(.whiteOutline) // apple 전용 HIG 3종 (기본 .black)
+
+// UIKit
+let button = SocialLoginUIButton()
+    .setProvider(.google)
+    .setCornerRadius(16)
+    .setOnTap { [weak self] in self?.signInGoogle() }
+button.setLoading(true)           // 요청 중 스피너 + isEnabled=false
+```
+
+버튼 문구는 시스템 언어(ko/en/ja)를 따른다. 동작 예시는
+[`Examples/AuthSample`](../../Examples/AuthSample/README.md) 참조.
+
+## 8. 취소 처리
 
 사용자가 로그인 시트를 닫으면 `AuthKitError.cancelled` 가 던져진다.
 `error.isCancelled` 이면 보통 에러 UI 없이 조용히 넘어간다.
