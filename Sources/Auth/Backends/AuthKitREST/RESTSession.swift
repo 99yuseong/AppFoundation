@@ -1,6 +1,6 @@
 //
 //  RESTSession.swift
-//  AppFoundation / AuthKitREST
+//  AppFoundation / AuthKit (Backends 계층)
 //
 
 import Foundation

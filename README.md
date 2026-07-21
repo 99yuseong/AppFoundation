@@ -6,17 +6,17 @@
 ## Products
 
 Auth 는 3계층 — **Core**(타입·오케스트레이터·버튼) / **Providers**(credential 획득) /
-**Backends**(세션 교환) — 로 나뉘어 어느 백엔드와도 조합된다.
+**Backends**(세션 교환) — 로 나뉘어 어느 백엔드와도 조합된다. 계층은 디렉토리로
+표현하고, **product 는 외부 SDK 경계에서만** 쪼갠다(빌드 그래프를 가볍게 유지).
 
 | product | 계층 | 내용 | 외부 의존성 | 상태 |
 |---|---|---|---|---|
 | `CoreKit` | — | Info.plist 설정 로더(`ConfigValues`), `TopMostPresenter` | 없음 | ✅ |
-| `AuthKit` | Core | Auth 코어(타입·프로토콜·`DefaultAuthService`·Mock) + **로그인 버튼**(SwiftUI/UIKit, ko·en·ja) | 없음 | ✅ |
+| `AuthKit` | Core + Backend | Auth 코어(타입·프로토콜·`DefaultAuthService`·Mock) + **로그인 버튼**(SwiftUI/UIKit, ko·en·ja) + **`RESTAuthBackend`**(자체 서버, 표준 REST 계약) | 없음 | ✅ |
 | `AuthKitApple` | Provider | Apple | 없음 (AuthenticationServices) | ✅ |
 | `AuthKitGoogle` | Provider | Google | GoogleSignIn-iOS | ✅ |
 | `AuthKitKakao` | Provider | Kakao (네이티브, OIDC) | kakao-ios-sdk | ✅ |
 | `AuthKitSupabase` | Backend | Supabase (`SupabaseAuthBackend`) | supabase-swift | ✅ |
-| `AuthKitREST` | Backend | 일반(자체) 서버 — 표준 REST 계약 | 없음 | ✅ |
 | `PurchaseKit` / `AdsKit` / `AnalyticsKit` / Push | — | — | — | 예정 |
 
 ## 빠른 시작 (Auth)

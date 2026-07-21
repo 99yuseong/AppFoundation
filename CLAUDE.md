@@ -11,13 +11,23 @@ Sources/{Domain}/{Layer}/{Target}
 └── Auth/
     ├── Core/AuthKit                # 타입·프로토콜·오케스트레이터·로그인 버튼 (SDK 무의존)
     ├── Providers/AuthKit{Apple,Google,Kakao}   # credential 획득 (provider SDK 소유)
-    └── Backends/AuthKit{Supabase,REST}         # credential ↔ 세션 교환
+    └── Backends/
+        ├── AuthKitSupabase         # supabase-swift → 별도 타깃
+        └── AuthKitREST             # 의존성 zero → AuthKit 타깃에 포함 (폴더만 분리)
 ```
 
+- **폴더 = 계층, 타깃 = SDK 경계.** 이 둘은 1:1 이 아니다. 계층 구분은 디렉토리로
+  표현하고, **타깃은 외부 SDK 의존이 갈리는 지점에서만** 쪼갠다 — 타깃이 늘수록
+  빌드 그래프가 무거워지므로 의존성 없는 계층끼리는 한 타깃으로 묶는다.
+  현재 `AuthKit` 타깃 = `Core/AuthKit` + `Backends/AuthKitREST`
+  (Package.swift 에서 `path: "Sources/Auth"` + SDK 폴더 `exclude`).
+  → 새 계층·폴더를 추가할 때 **자동으로 새 타깃을 만들지 말 것.** 외부 SDK 를
+    물지 않으면 기존 타깃의 `path` 안에 폴더만 추가한다.
 - **의존 방향은 안쪽으로만**: Providers/Backends → Core(AuthKit) → CoreKit.
   Provider 와 Backend 는 서로 import 하지 않는다.
 - **product 분리 원칙**: 외부 SDK 의존이 있는 타겟은 반드시 별도 product.
-  provider 는 전부 `AuthKit{Provider}` 대칭 규칙 (외부 SDK 가 없는 Apple 도 동일).
+  provider 는 전부 `AuthKit{Provider}` 대칭 규칙 (외부 SDK 가 없는 Apple 도 동일 —
+  provider 는 앱이 골라 링크하는 단위라 SDK 유무와 무관하게 대칭을 유지한다).
 - 새 도메인(Purchase/Ads/Analytics/Push)은 같은 구조로 추가한다.
 - 각 타겟 최상단의 CLAUDE.md 가 그 모듈의 책임·경계를 정의한다 — 수정 전에 읽는다.
 

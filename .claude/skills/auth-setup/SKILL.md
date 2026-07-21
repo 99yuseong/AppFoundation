@@ -18,7 +18,7 @@ description: AppFoundation AuthKit을 앱에 통합·세팅한다. Supabase 소�
 1. **사용 provider·백엔드 확인**: 사용자에게 어떤 소셜 로그인을 쓸지 묻는다
    (Apple / Kakao / Google — Apple 은 다른 소셜 로그인이 있으면 심사상 사실상 의무).
    백엔드도 확인한다 — Supabase 면 아래 콘솔 절차, **자체 API 서버면
-   `docs/auth/08-custom-backend.md` 를 읽고 `AuthKitREST` 로 안내한다**
+   `docs/auth/08-custom-backend.md` 를 읽고 `RESTAuthBackend`(AuthKit 내장) 로 안내한다**
    (콘솔 절차 중 01-supabase 는 건너뛴다).
 
 2. **현재 상태 파악**: 앱 프로젝트에서 다음을 확인한다:

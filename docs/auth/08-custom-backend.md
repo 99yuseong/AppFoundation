@@ -5,21 +5,21 @@ Auth 는 3계층으로 나뉘어 어느 조합으로도 갈아끼울 수 있다:
 ```
 AuthProvider (credential 획득)     AuthBackend (credential ↔ 세션 교환)
   AuthKitApple / Google / Kakao      AuthKitSupabase   — Supabase
-  + 앱 정의 provider                 AuthKitREST       — 일반(자체) 서버
+  + 앱 정의 provider                 RESTAuthBackend   — 일반(자체) 서버
                                      (직접 구현)        — Firebase 등
               └── DefaultAuthService (오케스트레이터) ──┘
 ```
 
-## 1. 일반 서버 — `AuthKitREST`
+## 1. 일반 서버 — `RESTAuthBackend`
 
-자체 API 서버로 소셜 로그인을 처리하는 앱은 `AuthKitSupabase` 대신 `AuthKitREST`
-product 를 추가한다. 외부 의존이 없다.
+자체 API 서버로 소셜 로그인을 처리하는 앱은 `AuthKitSupabase` 를 추가하지 않는다.
+`RESTAuthBackend` 는 외부 의존이 없어 **`AuthKit` 에 내장**돼 있다 — 추가 product
+없이 `import AuthKit` 만으로 쓴다.
 
 ### 조립
 
 ```swift
 import AuthKit
-import AuthKitREST
 
 let authService: any AuthService = DefaultAuthService(
     backend: RESTAuthBackend(

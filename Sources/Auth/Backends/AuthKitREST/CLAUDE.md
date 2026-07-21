@@ -1,7 +1,12 @@
-# AuthKitREST (Auth / Backends 계층)
+# AuthKitREST (Auth / Backends 계층 — `AuthKit` 타깃)
 
 일반(자체) 서버용 백엔드 — 외부 의존 zero. kit 이 정의한 표준 계약
 (`docs/auth/08-custom-backend.md`)을 앱 서버가 구현하면 바로 붙는다.
+
+**타깃**: 이 폴더는 독립 타깃이 아니라 **`AuthKit` 타깃의 일부**다(의존성이 없어
+빌드 그래프를 가볍게 두려고 Core 와 한 타깃으로 묶었다). 폴더는 계층 표현용으로
+유지한다. 따라서 여기서 `import AuthKit` 은 하지 않는다 — 같은 모듈이다.
+외부 SDK 의존이 생기는 순간에만 별도 타깃으로 분리한다.
 
 ## 공개 API
 

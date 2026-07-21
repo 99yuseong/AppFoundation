@@ -3,8 +3,8 @@
 ## 0.3.0 (2026-07-21)
 
 ### 추가
-- `AuthKitREST`: 일반(자체) 서버용 백엔드 (외부 의존 zero) — 표준 REST 계약
-  (`docs/auth/08-custom-backend.md`), `RESTSession`, `SessionStoring`
+- `RESTAuthBackend`: 일반(자체) 서버용 백엔드 (외부 의존 zero라 `AuthKit` 에 내장) —
+  표준 REST 계약 (`docs/auth/08-custom-backend.md`), `RESTSession`, `SessionStoring`
   (Keychain 기본/InMemory), 계약이 다른 서버용 encode/decode 오버라이드
 - 개방형 provider: `AuthCredential.custom(provider:parameters:)` /
   `WithdrawalCredential.custom` — 앱 정의 provider 를 kit 수정 없이 추가
@@ -28,7 +28,9 @@
   `AppleAuthProvider(branding: .apple(.whiteOutline))`)
 - `AuthProvider` 에 `branding` 요구사항 추가 — 직접 구현한 provider 는 branding
   프로퍼티를 추가해야 함
-- 디렉토리 재편: `Sources/Auth/{Core,Providers,Backends}/` (product 이름·API 불변)
+- 디렉토리 재편: `Sources/Auth/{Core,Providers,Backends}/` (product 이름·API 불변).
+  **타깃 분리 기준은 계층이 아니라 외부 SDK 경계** — 의존성 없는 `Core/AuthKit` 과
+  `Backends/AuthKitREST` 는 `AuthKit` 한 타깃으로 묶었다(폴더는 계층대로 유지)
 
 ## 0.2.0 (2026-07-21)
 
