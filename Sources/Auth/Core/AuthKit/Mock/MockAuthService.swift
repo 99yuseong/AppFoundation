@@ -12,9 +12,18 @@ public actor MockAuthService: AuthService {
 
     private var identity: AuthIdentity?
     private let fixedUID: String
+    private let options: [SocialLoginOption]
 
-    public init(uid: String = "mock-user") {
+    public init(
+        uid: String = "mock-user",
+        options: [SocialLoginOption] = [
+            SocialLoginOption(provider: .apple, branding: .apple()),
+            SocialLoginOption(provider: .google, branding: .google),
+            SocialLoginOption(provider: .kakao, branding: .kakao),
+        ]
+    ) {
         self.fixedUID = uid
+        self.options = options
     }
 
     public var currentIdentity: AuthIdentity? { identity }
@@ -23,6 +32,8 @@ public actor MockAuthService: AuthService {
     public nonisolated var authEvents: AsyncStream<(event: AuthEvent, identity: AuthIdentity?)> {
         AsyncStream { $0.finish() }
     }
+
+    public nonisolated var loginOptions: [SocialLoginOption] { options }
 
     public func signIn(
         with provider: SocialProvider,
@@ -69,6 +80,8 @@ public actor MockAuthService: AuthService {
             .google(idToken: "mock-google-id-token", accessToken: "mock-google-token")
         case .kakao:
             .kakao(idToken: "mock-kakao-id-token", rawNonce: "mock-nonce")
+        default:
+            .custom(provider: provider, parameters: ["id_token": "mock-custom-id-token"])
         }
     }
 }

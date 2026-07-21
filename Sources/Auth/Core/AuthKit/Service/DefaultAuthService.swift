@@ -15,10 +15,13 @@ public final class DefaultAuthService: AuthService, Sendable {
     private let logger = Logger(subsystem: "AppFoundation", category: "AuthKit")
 
     private let backend: any AuthBackend
+    // 주입 순서를 보존한다 — loginOptions 의 노출 순서가 이 순서를 따른다.
+    private let orderedProviders: [any AuthProvider]
     private let providers: [SocialProvider: any AuthProvider]
 
     public init(backend: any AuthBackend, providers: [any AuthProvider]) {
         self.backend = backend
+        self.orderedProviders = providers
         self.providers = Dictionary(uniqueKeysWithValues: providers.map { ($0.type, $0) })
     }
 
@@ -28,6 +31,10 @@ public final class DefaultAuthService: AuthService, Sendable {
 
     public var authEvents: AsyncStream<(event: AuthEvent, identity: AuthIdentity?)> {
         backend.events
+    }
+
+    public var loginOptions: [SocialLoginOption] {
+        orderedProviders.map { SocialLoginOption(provider: $0.type, branding: $0.branding) }
     }
 
     public func signIn(

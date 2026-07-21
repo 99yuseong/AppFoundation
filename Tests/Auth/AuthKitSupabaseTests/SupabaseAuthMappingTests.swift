@@ -34,9 +34,17 @@ struct SupabaseAuthMappingTests {
         #expect(SupabaseAuthMapping.provider(fromAppMetadata: ["provider": .string("kakao")]) == .kakao)
     }
 
-    @Test("appMetadata provider 매핑 — 미지원/누락은 nil")
-    func providerMappingUnknown() {
-        #expect(SupabaseAuthMapping.provider(fromAppMetadata: ["provider": .string("naver")]) == nil)
+    @Test("appMetadata provider 매핑 — 임의 문자열도 개방형 provider 로 매핑")
+    func providerMappingOpen() {
+        // SocialProvider 는 열린 struct — kit 이 모르는 문자열도 그대로 식별자가 된다.
+        #expect(
+            SupabaseAuthMapping.provider(fromAppMetadata: ["provider": .string("naver")])
+                == SocialProvider(rawValue: "naver")
+        )
+    }
+
+    @Test("appMetadata provider 매핑 — 누락/비문자열은 nil")
+    func providerMappingMissing() {
         #expect(SupabaseAuthMapping.provider(fromAppMetadata: [:]) == nil)
         #expect(SupabaseAuthMapping.provider(fromAppMetadata: ["provider": .integer(1)]) == nil)
     }

@@ -21,6 +21,10 @@ public enum WithdrawalCredential: Equatable, Sendable {
     /// (`sub` claim)에만 쓴다 — 서버가 auth identities 에서 직접 찾으면 불필요.
     case kakao(idToken: String)
 
+    /// 앱 정의 provider: 재인증 credential 의 parameters 를 그대로 나른다.
+    /// 서버 revoke 에 무엇이 필요한지는 앱 서버 계약이 정한다.
+    case custom(provider: SocialProvider, parameters: [String: String])
+
     /// 재인증으로 얻은 `AuthCredential` 을 접는다. Apple 이 authorization code 를
     /// 생략하면(재인증인데도 없으면) revoke 를 못 하므로 `missingCredential` 로 던진다.
     public init(folding credential: AuthCredential) throws {
@@ -34,6 +38,9 @@ public enum WithdrawalCredential: Equatable, Sendable {
 
         case let .kakao(idToken, _):
             self = .kakao(idToken: idToken)
+
+        case let .custom(provider, parameters):
+            self = .custom(provider: provider, parameters: parameters)
         }
     }
 }

@@ -25,6 +25,7 @@ let package = Package(
         .library(name: "AuthKitGoogle",   targets: ["AuthKitGoogle"]),
         .library(name: "AuthKitKakao",    targets: ["AuthKitKakao"]),
         .library(name: "AuthKitSupabase", targets: ["AuthKitSupabase"]),
+        .library(name: "AuthKitREST",     targets: ["AuthKitREST"]),
     ],
     dependencies: [
         // 하한 = TumTumRead 현재 pin(2.29.3). Doran(2.51.0)과 range 호환.
@@ -82,6 +83,12 @@ let package = Package(
             path: "Sources/Auth/Backends/AuthKitSupabase",
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
+        .target(
+            name: "AuthKitREST",
+            dependencies: ["AuthKit"],
+            path: "Sources/Auth/Backends/AuthKitREST",
+            swiftSettings: [.swiftLanguageMode(.v6)]
+        ),
         .testTarget(
             name: "AuthKitTests",
             dependencies: ["AuthKit"],
@@ -91,6 +98,11 @@ let package = Package(
             name: "AuthKitSupabaseTests",
             dependencies: ["AuthKitSupabase"],
             path: "Tests/Auth/AuthKitSupabaseTests"
+        ),
+        .testTarget(
+            name: "AuthKitRESTTests",
+            dependencies: ["AuthKitREST"],
+            path: "Tests/Auth/AuthKitRESTTests"
         ),
     ]
 )

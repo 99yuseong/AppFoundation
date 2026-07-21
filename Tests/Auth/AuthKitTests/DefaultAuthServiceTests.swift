@@ -16,11 +16,17 @@ struct DefaultAuthServiceTests {
 
     private final class StubProvider: AuthProvider, @unchecked Sendable {
         let type: SocialProvider
+        let branding: SocialLoginBranding
         let result: Result<AuthCredential, AuthKitError>
         private(set) var signOutCallCount = 0
 
-        init(type: SocialProvider, result: Result<AuthCredential, AuthKitError>) {
+        init(
+            type: SocialProvider,
+            branding: SocialLoginBranding = .apple(),
+            result: Result<AuthCredential, AuthKitError>
+        ) {
             self.type = type
+            self.branding = branding
             self.result = result
         }
 
@@ -56,6 +62,52 @@ struct DefaultAuthServiceTests {
 
     private static func appleCredential(code: String? = "code") -> AuthCredential {
         .apple(idToken: "id-token", rawNonce: "nonce", authorizationCode: code, fullName: nil, email: nil)
+    }
+
+    // MARK: - loginOptions
+
+    @Test("loginOptions — 주입 순서가 보존되고 provider 의 branding 이 전달된다")
+    func loginOptionsOrderAndBranding() {
+        let naver = SocialProvider(rawValue: "naver")
+        let naverBranding = SocialLoginBranding(
+            title: "네이버로 로그인",
+            foreground: .white,
+            background: .green,
+            logo: .sfSymbol("n.square.fill")
+        )
+        let service = DefaultAuthService(
+            backend: StubBackend(),
+            providers: [
+                StubProvider(type: .kakao, branding: .kakao, result: .success(.kakao(idToken: "t", rawNonce: "n"))),
+                StubProvider(type: .apple, branding: .apple(.whiteOutline), result: .success(Self.appleCredential())),
+                StubProvider(type: naver, branding: naverBranding,
+                             result: .success(.custom(provider: naver, parameters: [:]))),
+            ]
+        )
+
+        let options = service.loginOptions
+
+        // 주입 순서 = 노출 순서 (kakao → apple → naver)
+        #expect(options.map(\.provider) == [.kakao, .apple, naver])
+        // provider 가 소유한 branding 이 그대로 흐른다
+        #expect(options[1].branding.border != nil)   // whiteOutline 은 테두리 있음
+        #expect(options[2].branding.title == "네이버로 로그인")
+    }
+
+    @Test("커스텀 provider — 등록만 하면 signIn 이 동일하게 동작한다")
+    func signInCustomProvider() async throws {
+        let naver = SocialProvider(rawValue: "naver")
+        let backend = StubBackend()
+        let provider = StubProvider(
+            type: naver,
+            result: .success(.custom(provider: naver, parameters: ["id_token": "t"]))
+        )
+        let service = DefaultAuthService(backend: backend, providers: [provider])
+
+        let result = try await service.signIn(with: naver)
+
+        #expect(backend.exchangedCredentials.count == 1)
+        #expect(result.identity.provider == naver)
     }
 
     // MARK: - signIn

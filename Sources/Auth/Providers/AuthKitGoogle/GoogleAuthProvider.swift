@@ -19,10 +19,14 @@ public struct GoogleAuthProvider: AuthProvider {
 
     public let type: SocialProvider = .google
 
+    /// 로그인 버튼 브랜드 디자인 — 기본은 공식 스펙(.google). 생성자로 오버라이드한다.
+    public let branding: SocialLoginBranding
+
     private let clientID: String
 
-    public init(clientID: String) {
+    public init(clientID: String, branding: SocialLoginBranding = .google) {
         self.clientID = clientID
+        self.branding = branding
     }
 
     @MainActor

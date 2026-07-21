@@ -28,11 +28,18 @@ public enum AuthCredential: Sendable {
     /// Kakao: identity token + 검증용 raw nonce. 세션 교환은 `AuthBackend` 책임.
     case kakao(idToken: String, rawNonce: String)
 
+    /// 앱 정의 provider 의 개방 경로. kit 이 모르는 provider(예: naver)의
+    /// credential 을 key-value 로 나른다. 백엔드가 이해하는 경우에만 교환된다 —
+    /// `RESTAuthBackend` 는 parameters 를 계약 body 에 병합하고,
+    /// `SupabaseAuthBackend` 는 `unknownProvider` 를 던진다.
+    case custom(provider: SocialProvider, parameters: [String: String])
+
     public var provider: SocialProvider {
         switch self {
         case .apple: .apple
         case .google: .google
         case .kakao: .kakao
+        case let .custom(provider, _): provider
         }
     }
 }

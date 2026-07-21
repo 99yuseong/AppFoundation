@@ -98,6 +98,12 @@ public final class SupabaseAuthBackend: AuthBackend, @unchecked Sendable {
 
             case let .kakao(idToken, rawNonce):
                 session = try await exchangeKakao(idToken: idToken, rawNonce: rawNonce)
+
+            case let .custom(provider, _):
+                // Supabase 는 kit 이 아는 provider 만 교환 가능 — 앱 정의 provider 는
+                // 자체 서버(RESTAuthBackend)나 AuthBackend 직접 구현으로 처리한다.
+                logger.error("Supabase 백엔드가 모르는 provider: \(provider.rawValue)")
+                throw AuthKitError.unknownProvider(provider)
             }
 
         } catch let error as AuthKitError {

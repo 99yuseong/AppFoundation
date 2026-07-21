@@ -2,15 +2,17 @@
 //  SocialLoginButton.swift
 //  AppFoundation / AuthKit
 //
-//  소셜 로그인 버튼 (SwiftUI). provider별 타입을 나누지 않고 `setProvider` 로
-//  브랜드 렌더링(색·로고·문구)을 전환한다. 설정값은 전부 내부 변수로 저장하고
-//  `set~` 빌더 모디파이어로 수정한다.
+//  소셜 로그인 버튼 (SwiftUI). provider switch 없이 주입된 `SocialLoginOption` 의
+//  branding(문구·색·로고)만 그린다 — 새 provider 는 branding 값 하나로 노출된다.
+//  설정값은 전부 내부 변수로 저장하고 `set~` 빌더 모디파이어로 수정한다.
 //
-//  사용 예:
-//      SocialLoginButton { viewModel.signInKakao() }
-//          .setProvider(.kakao)
-//          .setCornerRadius(16)
-//          .setIsLoading($isLoading)
+//  보통은 조립한 옵션 목록을 그대로 그리는 `SocialLoginButtonStack` 을 쓰고,
+//  이 타입은 수동 배치가 필요할 때 단독으로 쓴다:
+//      SocialLoginButton(option: .init(provider: .kakao, branding: .kakao)) {
+//          viewModel.signInKakao()
+//      }
+//      .setCornerRadius(16)
+//      .setIsLoading($isLoading)
 //
 
 import SwiftUI
@@ -19,24 +21,19 @@ public struct SocialLoginButton: View {
 
     // MARK: - 설정값 (set 모디파이어로 수정)
 
-    private var provider: SocialProvider = .apple
+    private let option: SocialLoginOption
     private var cornerRadius: CGFloat = 12
     private var height: CGFloat = 52
     private var isLoading: Binding<Bool> = .constant(false)
-    private var appleStyle: AppleLoginStyle = .black
 
     private let action: @MainActor () -> Void
 
-    public init(action: @escaping @MainActor () -> Void) {
+    public init(option: SocialLoginOption, action: @escaping @MainActor () -> Void) {
+        self.option = option
         self.action = action
     }
 
     // MARK: - set 모디파이어 (빌더)
-
-    /// 브랜드 렌더링(색·로고·문구) 전환. 기본 `.apple`.
-    public func setProvider(_ provider: SocialProvider) -> Self {
-        copy { $0.provider = provider }
-    }
 
     /// 모서리 반경. 기본 12.
     public func setCornerRadius(_ radius: CGFloat) -> Self {
@@ -53,12 +50,6 @@ public struct SocialLoginButton: View {
         copy { $0.isLoading = isLoading }
     }
 
-    /// Apple 버튼 HIG 스타일(.black/.white/.whiteOutline). 기본 `.black`.
-    /// provider 가 `.apple` 이 아닐 때는 무시된다.
-    public func setAppleStyle(_ style: AppleLoginStyle) -> Self {
-        copy { $0.appleStyle = style }
-    }
-
     private func copy(_ mutate: (inout Self) -> Void) -> Self {
         var copied = self
         mutate(&copied)
@@ -67,114 +58,65 @@ public struct SocialLoginButton: View {
 
     // MARK: - Body
 
+    private var branding: SocialLoginBranding { option.branding }
+
     public var body: some View {
         Button(action: action) {
             ZStack {
                 HStack(spacing: 8) {
-                    logo
+                    LogoView(logo: branding.logo, foreground: branding.foreground)
                         .frame(width: 18, height: 18)
-                    Text(titleKey, bundle: .module)
+                    Text(branding.title)
                         .font(.system(size: 16, weight: .semibold))
                 }
                 .opacity(isLoading.wrappedValue ? 0 : 1)
 
                 if isLoading.wrappedValue {
                     ProgressView()
-                        .tint(foreground)
+                        .tint(Color(uiColor: branding.foreground))
                 }
             }
-            .foregroundStyle(foreground)
+            .foregroundStyle(Color(uiColor: branding.foreground))
             .frame(maxWidth: .infinity, minHeight: height)
-            .background(background, in: RoundedRectangle(cornerRadius: cornerRadius))
+            .background(
+                Color(uiColor: branding.background),
+                in: RoundedRectangle(cornerRadius: cornerRadius)
+            )
             .overlay {
-                if let border {
+                if let border = branding.border {
                     RoundedRectangle(cornerRadius: cornerRadius)
-                        .strokeBorder(border, lineWidth: 1)
+                        .strokeBorder(Color(uiColor: border), lineWidth: 1)
                 }
             }
         }
         .buttonStyle(.plain)
         .disabled(isLoading.wrappedValue)
     }
-
-    // MARK: - 브랜드 렌더링
-
-    private var titleKey: LocalizedStringKey {
-        switch provider {
-        case .apple: "social.login.apple"
-        case .google: "social.login.google"
-        case .kakao: "social.login.kakao"
-        }
-    }
-
-    private var foreground: Color {
-        switch provider {
-        case .apple:
-            appleStyle == .black ? .white : .black
-        case .google:
-            Color(uiColor: SocialLoginLogo.BrandColor.googleForeground)
-        case .kakao:
-            Color(uiColor: SocialLoginLogo.BrandColor.kakaoForeground)
-        }
-    }
-
-    private var background: Color {
-        switch provider {
-        case .apple:
-            appleStyle == .black ? .black : .white
-        case .google:
-            .white
-        case .kakao:
-            Color(uiColor: SocialLoginLogo.BrandColor.kakaoBackground)
-        }
-    }
-
-    private var border: Color? {
-        switch provider {
-        case .apple:
-            appleStyle == .whiteOutline
-                ? Color(uiColor: SocialLoginLogo.BrandColor.appleOutlineBorder)
-                : nil
-        case .google:
-            Color(uiColor: SocialLoginLogo.BrandColor.googleBorder)
-        case .kakao:
-            nil
-        }
-    }
-
-    @ViewBuilder
-    private var logo: some View {
-        switch provider {
-        case .apple:
-            Image(systemName: "apple.logo")
-                .font(.system(size: 17, weight: .medium))
-                // 로고 하단이 살짝 무거워 보정
-                .offset(y: -1)
-
-        case .kakao:
-            KakaoSymbolShape()
-                .fill(foreground)
-
-        case .google:
-            GoogleLogoView()
-        }
-    }
 }
 
-// MARK: - 로고 뷰 (CGPath 공유 정의를 SwiftUI 로)
+// MARK: - 로고 렌더링 (branding.logo → SwiftUI)
 
-private struct KakaoSymbolShape: Shape {
-    func path(in rect: CGRect) -> Path {
-        Path(SocialLoginLogo.kakaoBubblePath(in: rect))
-    }
-}
+private struct LogoView: View {
 
-private struct GoogleLogoView: View {
+    let logo: SocialLoginBranding.Logo
+    let foreground: UIColor
+
     var body: some View {
-        Canvas { context, size in
-            let rect = CGRect(origin: .zero, size: size)
-            for segment in SocialLoginLogo.googleSegments(in: rect) {
-                context.fill(Path(segment.path), with: .color(Color(uiColor: segment.color)))
+        switch logo {
+        case let .sfSymbol(name, verticalOffset):
+            Image(systemName: name)
+                .font(.system(size: 17, weight: .medium))
+                .offset(y: verticalOffset)
+
+        case let .paths(segments):
+            Canvas { context, size in
+                let rect = CGRect(origin: .zero, size: size)
+                for segment in segments(rect) {
+                    context.fill(
+                        Path(segment.path),
+                        with: .color(Color(uiColor: segment.color ?? foreground))
+                    )
+                }
             }
         }
     }
@@ -182,22 +124,15 @@ private struct GoogleLogoView: View {
 
 // MARK: - Preview
 
-#Preview("Providers") {
+#Preview("Options") {
     VStack(spacing: 12) {
-        SocialLoginButton {}
-            .setProvider(.apple)
-        SocialLoginButton {}
-            .setProvider(.kakao)
-        SocialLoginButton {}
-            .setProvider(.google)
-        SocialLoginButton {}
-            .setProvider(.apple)
-            .setAppleStyle(.whiteOutline)
-        SocialLoginButton {}
-            .setProvider(.kakao)
+        SocialLoginButton(option: .init(provider: .apple, branding: .apple())) {}
+        SocialLoginButton(option: .init(provider: .kakao, branding: .kakao)) {}
+        SocialLoginButton(option: .init(provider: .google, branding: .google)) {}
+        SocialLoginButton(option: .init(provider: .apple, branding: .apple(.whiteOutline))) {}
+        SocialLoginButton(option: .init(provider: .kakao, branding: .kakao)) {}
             .setIsLoading(.constant(true))
-        SocialLoginButton {}
-            .setProvider(.google)
+        SocialLoginButton(option: .init(provider: .google, branding: .google)) {}
             .setCornerRadius(26)
             .setHeight(56)
     }

@@ -2,12 +2,11 @@
 //  SocialLoginUIButton.swift
 //  AppFoundation / AuthKit
 //
-//  소셜 로그인 버튼 (UIKit). SwiftUI 의 `SocialLoginButton` 과 동일한 브랜드
-//  렌더링·빌더 체이닝을 UIControl 로 제공한다.
+//  소셜 로그인 버튼 (UIKit). SwiftUI 의 `SocialLoginButton` 과 동일하게 주입된
+//  `SocialLoginOption` 의 branding 만 그린다 — provider switch 없음.
 //
-//  사용 예:
-//      let button = SocialLoginUIButton()
-//          .setProvider(.kakao)
+//  보통은 `SocialLoginUIButtonStack` 을 쓰고, 단독 사용은:
+//      let button = SocialLoginUIButton(option: .init(provider: .kakao, branding: .kakao))
 //          .setCornerRadius(16)
 //          .setOnTap { [weak self] in self?.signInKakao() }
 //      button.setLoading(true)   // 요청 중 스피너 + 비활성
@@ -19,8 +18,7 @@ public final class SocialLoginUIButton: UIControl {
 
     // MARK: - 설정값
 
-    private var provider: SocialProvider = .apple
-    private var appleStyle: AppleLoginStyle = .black
+    public let option: SocialLoginOption
     private var buttonHeight: CGFloat = 52
     private var onTap: (() -> Void)?
 
@@ -28,35 +26,25 @@ public final class SocialLoginUIButton: UIControl {
 
     private let contentStack = UIStackView()
     private let logoContainer = UIView()
-    private let appleLogoView = UIImageView(
-        image: UIImage(systemName: "apple.logo", withConfiguration:
-            UIImage.SymbolConfiguration(pointSize: 17, weight: .medium))
-    )
+    private let symbolLogoView = UIImageView()
     private let drawnLogoView = LogoDrawView()
     private let titleLabel = UILabel()
     private let spinner = UIActivityIndicatorView(style: .medium)
 
     // MARK: - Init
 
-    public init() {
+    public init(option: SocialLoginOption) {
+        self.option = option
         super.init(frame: .zero)
         setup()
     }
 
+    @available(*, unavailable, message: "init(option:) 을 사용하세요")
     public required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setup()
+        fatalError("init(option:) 을 사용하세요")
     }
 
     // MARK: - set 모디파이어 (빌더, Self 반환)
-
-    /// 브랜드 렌더링(색·로고·문구) 전환. 기본 `.apple`.
-    @discardableResult
-    public func setProvider(_ provider: SocialProvider) -> Self {
-        self.provider = provider
-        applyBranding()
-        return self
-    }
 
     /// 모서리 반경. 기본 12.
     @discardableResult
@@ -70,14 +58,6 @@ public final class SocialLoginUIButton: UIControl {
     public func setHeight(_ height: CGFloat) -> Self {
         buttonHeight = height
         invalidateIntrinsicContentSize()
-        return self
-    }
-
-    /// Apple 버튼 HIG 스타일. provider 가 `.apple` 이 아닐 때는 무시된다.
-    @discardableResult
-    public func setAppleStyle(_ style: AppleLoginStyle) -> Self {
-        appleStyle = style
-        applyBranding()
         return self
     }
 
@@ -122,7 +102,7 @@ public final class SocialLoginUIButton: UIControl {
         contentStack.alignment = .center
         contentStack.isUserInteractionEnabled = false
 
-        logoContainer.addSubview(appleLogoView)
+        logoContainer.addSubview(symbolLogoView)
         logoContainer.addSubview(drawnLogoView)
         drawnLogoView.backgroundColor = .clear
 
@@ -135,9 +115,13 @@ public final class SocialLoginUIButton: UIControl {
         spinner.hidesWhenStopped = true
         addSubview(spinner)
 
-        [contentStack, logoContainer, appleLogoView, drawnLogoView, spinner].forEach {
+        [contentStack, logoContainer, symbolLogoView, drawnLogoView, spinner].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
+
+        // symbolLogoView 의 y 제약은 branding 의 verticalOffset 을 따른다 (applyBranding).
+        symbolCenterYConstraint = symbolLogoView.centerYAnchor
+            .constraint(equalTo: logoContainer.centerYAnchor)
 
         NSLayoutConstraint.activate([
             contentStack.centerXAnchor.constraint(equalTo: centerXAnchor),
@@ -145,8 +129,8 @@ public final class SocialLoginUIButton: UIControl {
 
             logoContainer.widthAnchor.constraint(equalToConstant: 18),
             logoContainer.heightAnchor.constraint(equalToConstant: 18),
-            appleLogoView.centerXAnchor.constraint(equalTo: logoContainer.centerXAnchor),
-            appleLogoView.centerYAnchor.constraint(equalTo: logoContainer.centerYAnchor, constant: -1),
+            symbolLogoView.centerXAnchor.constraint(equalTo: logoContainer.centerXAnchor),
+            symbolCenterYConstraint,
             drawnLogoView.topAnchor.constraint(equalTo: logoContainer.topAnchor),
             drawnLogoView.bottomAnchor.constraint(equalTo: logoContainer.bottomAnchor),
             drawnLogoView.leadingAnchor.constraint(equalTo: logoContainer.leadingAnchor),
@@ -161,78 +145,59 @@ public final class SocialLoginUIButton: UIControl {
         applyBranding()
     }
 
+    private var symbolCenterYConstraint: NSLayoutConstraint!
+
     @objc private func handleTap() {
         onTap?()
     }
 
-    // MARK: - 브랜드 렌더링 (SwiftUI 버전과 동일 스펙)
+    // MARK: - 브랜드 렌더링 (branding 값 → UIKit, SwiftUI 버전과 동일 스펙)
 
     private func applyBranding() {
-        let foreground: UIColor
-        let background: UIColor
-        var borderColor: UIColor?
+        let branding = option.branding
 
-        switch provider {
-        case .apple:
-            foreground = appleStyle == .black ? .white : .black
-            background = appleStyle == .black ? .black : .white
-            borderColor = appleStyle == .whiteOutline
-                ? SocialLoginLogo.BrandColor.appleOutlineBorder
-                : nil
-            titleLabel.text = String(localized: "social.login.apple", bundle: .module)
+        backgroundColor = branding.background
+        titleLabel.text = branding.title
+        titleLabel.textColor = branding.foreground
+        spinner.color = branding.foreground
+        layer.borderColor = branding.border?.cgColor
+        layer.borderWidth = branding.border == nil ? 0 : 1
 
-        case .google:
-            foreground = SocialLoginLogo.BrandColor.googleForeground
-            background = .white
-            borderColor = SocialLoginLogo.BrandColor.googleBorder
-            titleLabel.text = String(localized: "social.login.google", bundle: .module)
+        switch branding.logo {
+        case let .sfSymbol(name, verticalOffset):
+            symbolLogoView.image = UIImage(
+                systemName: name,
+                withConfiguration: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium)
+            )
+            symbolLogoView.tintColor = branding.foreground
+            symbolCenterYConstraint.constant = verticalOffset
+            symbolLogoView.isHidden = false
+            drawnLogoView.isHidden = true
 
-        case .kakao:
-            foreground = SocialLoginLogo.BrandColor.kakaoForeground
-            background = SocialLoginLogo.BrandColor.kakaoBackground
-            titleLabel.text = String(localized: "social.login.kakao", bundle: .module)
+        case let .paths(segments):
+            drawnLogoView.segments = segments
+            drawnLogoView.fillColor = branding.foreground
+            drawnLogoView.setNeedsDisplay()
+            symbolLogoView.isHidden = true
+            drawnLogoView.isHidden = false
         }
-
-        backgroundColor = background
-        titleLabel.textColor = foreground
-        spinner.color = foreground
-        layer.borderColor = borderColor?.cgColor
-        layer.borderWidth = borderColor == nil ? 0 : 1
-
-        appleLogoView.isHidden = provider != .apple
-        appleLogoView.tintColor = foreground
-        drawnLogoView.isHidden = provider == .apple
-        drawnLogoView.provider = provider
-        drawnLogoView.fillColor = foreground
-        drawnLogoView.setNeedsDisplay()
     }
 }
 
-// MARK: - 로고 드로잉 (CGPath 공유 정의를 UIKit 으로)
+// MARK: - 로고 드로잉 (branding.logo.paths → UIKit)
 
 private final class LogoDrawView: UIView {
 
-    var provider: SocialProvider = .apple
+    var segments: (@Sendable (CGRect) -> [(path: CGPath, color: UIColor?)])?
     var fillColor: UIColor = .black
 
     override func draw(_ rect: CGRect) {
-        guard let context = UIGraphicsGetCurrentContext() else { return }
+        guard let context = UIGraphicsGetCurrentContext(), let segments else { return }
 
-        switch provider {
-        case .apple:
-            break // UIImageView(SF Symbol) 가 담당
-
-        case .kakao:
-            context.addPath(SocialLoginLogo.kakaoBubblePath(in: rect))
-            context.setFillColor(fillColor.cgColor)
+        for segment in segments(rect) {
+            context.addPath(segment.path)
+            context.setFillColor((segment.color ?? fillColor).cgColor)
             context.fillPath()
-
-        case .google:
-            for segment in SocialLoginLogo.googleSegments(in: rect) {
-                context.addPath(segment.path)
-                context.setFillColor(segment.color.cgColor)
-                context.fillPath()
-            }
         }
     }
 }

@@ -23,7 +23,13 @@ public struct AppleAuthProvider: AuthProvider {
 
     public let type: SocialProvider = .apple
 
-    public init() {}
+    /// 로그인 버튼 브랜드 디자인 — 기본은 HIG black. 생성자로 오버라이드한다
+    /// (예: `AppleAuthProvider(branding: .apple(.whiteOutline))`).
+    public let branding: SocialLoginBranding
+
+    public init(branding: SocialLoginBranding = .apple()) {
+        self.branding = branding
+    }
 
     @MainActor
     public func authenticate(presenter: AuthPresenter?) async throws -> AuthCredential {

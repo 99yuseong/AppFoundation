@@ -24,7 +24,12 @@ public struct KakaoAuthProvider: AuthProvider {
 
     public let type: SocialProvider = .kakao
 
-    public init() {}
+    /// 로그인 버튼 브랜드 디자인 — 기본은 공식 스펙(.kakao). 생성자로 오버라이드한다.
+    public let branding: SocialLoginBranding
+
+    public init(branding: SocialLoginBranding = .kakao) {
+        self.branding = branding
+    }
 
     /// 앱 launch 시 1회 호출 — KakaoSDK 초기화.
     /// (Info.plist 의 KAKAO_APP_KEY 를 `ConfigValues.require` 로 읽어 넘기면 된다)

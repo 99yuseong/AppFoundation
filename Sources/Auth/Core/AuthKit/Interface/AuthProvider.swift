@@ -14,6 +14,12 @@ public protocol AuthProvider: Sendable {
 
     var type: SocialProvider { get }
 
+    /// 이 provider 의 로그인 버튼 브랜드 디자인. provider 가 자기 디자인을 소유한다 —
+    /// 기본값을 내장하고 생성자에서 오버라이드받는 패턴을 권장한다
+    /// (예: `AppleAuthProvider(branding: .apple(.whiteOutline))`).
+    /// 조립 시 주입된 값이 `AuthService.loginOptions` 를 거쳐 버튼까지 흐른다.
+    var branding: SocialLoginBranding { get }
+
     /// provider 의 로그인 UI 를 present 하고 credential 을 돌려준다.
     @MainActor
     func authenticate(presenter: AuthPresenter?) async throws -> AuthCredential

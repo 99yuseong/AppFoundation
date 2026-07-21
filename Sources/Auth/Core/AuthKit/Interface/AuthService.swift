@@ -20,6 +20,10 @@ public protocol AuthService: Sendable {
     /// 무효화되는 상황에 반응한다.
     var authEvents: AsyncStream<(event: AuthEvent, identity: AuthIdentity?)> { get }
 
+    /// 로그인 UI 에 노출할 옵션 목록 — 조립 시 주입한 provider 들이 원천이며
+    /// 주입 순서가 노출 순서다. `SocialLoginButtonStack(options:)` 에 그대로 넘긴다.
+    var loginOptions: [SocialLoginOption] { get }
+
     /// 주어진 provider 로 로그인하고, 확립된 identity 와 로그인에 쓰인 credential 을
     /// 돌려준다. `presenter` 는 provider SDK 가 UI 를 present 할 뷰컨트롤러를
     /// 공급한다(Google 계정 피커, Apple 시트 anchor).
