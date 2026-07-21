@@ -56,6 +56,22 @@ xcodebuild build -project Examples/AuthSample/AuthSample.xcodeproj -scheme AuthS
 
 - swift-tools 6.2 / iOS 17+ / Swift 6 모드 (AuthKitKakao 만 v5 — KakaoSDK Sendable 미표기)
 - swift-testing 사용. HTTP 는 URLProtocol 스텁 + `.serialized` suite 패턴.
+- **테스트는 핵심 로직만.** 상수를 재서술하는 테스트는 만들지 않는다.
+  (예외: `.asset(_:)` 처럼 실패해도 컴파일이 통과하고 조용히 폴백하는 지점)
+
+## CI (GitHub Actions)
+
+PR 마다 두 워크플로우가 돈다 — 둘 다 Claude 기반이고 ubuntu 러너를 쓴다
+(리뷰·문서 대조는 Xcode 가 필요 없고, private repo 의 macOS 러너는 10배 과금).
+
+- `.github/workflows/claude-code-review.yml` — 변경분 코드 리뷰
+- `.github/workflows/docs-freshness.yml` — 변경분 대비 낡은 문서 탐지
+
+**필요 설정**: repo secret `ANTHROPIC_API_KEY`. 없으면 워크플로우는 실패한다.
+
+빌드·테스트는 CI 에서 돌리지 않는다 — 병합 전 로컬 게이트(위 3개 커맨드)로 확인한다.
+문서 정합성 검사를 규칙 스크립트로 만들지 마라: product 목록·심볼을 하드코딩한
+검사기는 그 자체가 최신화 대상이 된다(전례가 있어 폐기했다).
 
 ## 버전/배포
 
