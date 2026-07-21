@@ -32,9 +32,11 @@
 - 기본 로고 교체: Google 은 공식 에셋(Doran DesignGuide 이식), Kakao 는 SF Symbol
   `message.fill`(TumTumRead 와 동일). 이에 따라 `SocialLoginLogo` 의
   `googleSegments`/`kakaoBubblePath`(CGPath 근사)와 4색 상수 제거
-- 디렉토리 재편: `Sources/Auth/{Core,Providers,Backends}/` (product 이름·API 불변).
+- 디렉토리 재편: `Sources/Auth/{Core,Providers,Backends}/` (폴더 이동만 — API 불변)
+- `AuthKitREST` product 제거 — `AuthKit` 타깃에 흡수(product 7 → 6).
+  `RESTAuthBackend` 는 이제 `import AuthKit` 으로 쓴다.
   **타깃 분리 기준은 계층이 아니라 외부 SDK 경계** — 의존성 없는 `Core/AuthKit` 과
-  `Backends/AuthKitREST` 는 `AuthKit` 한 타깃으로 묶었다(폴더는 계층대로 유지)
+  `Backends/AuthKitREST` 를 한 타깃으로 묶었다(폴더는 계층대로 유지)
 
 ## 0.2.0 (2026-07-21)
 
