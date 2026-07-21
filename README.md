@@ -5,15 +5,19 @@
 
 ## Products
 
-| product | 내용 | 외부 의존성 | 상태 |
-|---|---|---|---|
-| `CoreKit` | Info.plist 설정 로더(`ConfigValues`), `TopMostPresenter` | 없음 | ✅ |
-| `AuthKit` | Auth 코어(타입·프로토콜·`DefaultAuthService`·Mock) + **로그인 버튼**(SwiftUI/UIKit, ko·en·ja) | 없음 | ✅ |
-| `AuthKitApple` | Apple provider | 없음 (AuthenticationServices) | ✅ |
-| `AuthKitSupabase` | Supabase 백엔드 (`SupabaseAuthBackend`) | supabase-swift | ✅ |
-| `AuthKitGoogle` | Google provider | GoogleSignIn-iOS | ✅ |
-| `AuthKitKakao` | Kakao provider (네이티브, OIDC) | kakao-ios-sdk | ✅ |
-| `PurchaseKit` / `AdsKit` / `AnalyticsKit` / Push | — | — | 예정 |
+Auth 는 3계층 — **Core**(타입·오케스트레이터·버튼) / **Providers**(credential 획득) /
+**Backends**(세션 교환) — 로 나뉘어 어느 백엔드와도 조합된다.
+
+| product | 계층 | 내용 | 외부 의존성 | 상태 |
+|---|---|---|---|---|
+| `CoreKit` | — | Info.plist 설정 로더(`ConfigValues`), `TopMostPresenter` | 없음 | ✅ |
+| `AuthKit` | Core | Auth 코어(타입·프로토콜·`DefaultAuthService`·Mock) + **로그인 버튼**(SwiftUI/UIKit, ko·en·ja) | 없음 | ✅ |
+| `AuthKitApple` | Provider | Apple | 없음 (AuthenticationServices) | ✅ |
+| `AuthKitGoogle` | Provider | Google | GoogleSignIn-iOS | ✅ |
+| `AuthKitKakao` | Provider | Kakao (네이티브, OIDC) | kakao-ios-sdk | ✅ |
+| `AuthKitSupabase` | Backend | Supabase (`SupabaseAuthBackend`) | supabase-swift | ✅ |
+| `AuthKitREST` | Backend | 일반(자체) 서버 — 표준 REST 계약 | 없음 | ✅ |
+| `PurchaseKit` / `AdsKit` / `AnalyticsKit` / Push | — | — | — | 예정 |
 
 ## 빠른 시작 (Auth)
 
@@ -30,22 +34,26 @@ let authService: any AuthService = DefaultAuthService(
         client: client,   // 앱 전역 SupabaseClient 하나를 주입
         configuration: .init(supabaseURL: supabaseURL, apiKey: supabaseKey)
     ),
+    // 주입 순서 = 버튼 노출 순서. 버튼 디자인도 provider 가 소유 — 생성자로 오버라이드.
     providers: [AppleAuthProvider(), KakaoAuthProvider()]
 )
 
 let result = try await authService.signIn(with: .apple, presenter: nil)
 ```
 
-로그인 버튼 (브랜드 스펙 + ko/en/ja, SwiftUI/UIKit):
+로그인 버튼 (브랜드 스펙 + ko/en/ja, SwiftUI/UIKit) — 조립 시 등록한 provider 만
+노출된다:
 
 ```swift
-SocialLoginButton { signInKakao() }
-    .setProvider(.kakao)
-    .setCornerRadius(16)
-    .setIsLoading($isLoading)
+SocialLoginButtonStack(options: authService.loginOptions) { provider in
+    signIn(provider)
+}
+.setCornerRadius(16)
+.setIsLoading($isLoading)
 ```
 
 상세: [docs/auth/05-app-integration.md](docs/auth/05-app-integration.md) ·
+자체 서버·커스텀 provider: [docs/auth/08-custom-backend.md](docs/auth/08-custom-backend.md) ·
 동작 데모: [Examples/AuthSample](Examples/AuthSample/README.md)
 
 ## Claude 스킬로 세팅 안내 받기

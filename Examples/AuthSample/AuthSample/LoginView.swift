@@ -2,8 +2,8 @@
 //  LoginView.swift
 //  AuthSample
 //
-//  SocialLoginButton (SwiftUI) 데모 — setProvider 브랜드 전환, setIsLoading 바인딩,
-//  setCornerRadius 실시간 조정.
+//  SocialLoginButtonStack (SwiftUI) 데모 — 조립 시 등록한 provider 만
+//  auth.loginOptions 로 노출된다. setIsLoading 바인딩, setCornerRadius 실시간 조정.
 //
 
 import AuthKit
@@ -24,14 +24,12 @@ struct LoginView: View {
             Text("AuthKit SwiftUI 버튼")
                 .font(.headline)
 
-            VStack(spacing: 12) {
-                ForEach(SocialProvider.allCases, id: \.self) { provider in
-                    SocialLoginButton { signIn(provider) }
-                        .setProvider(provider)
-                        .setCornerRadius(cornerRadius)
-                        .setIsLoading($isLoading)
-                }
+            // 등록된 provider 만, 주입 순서대로 — 배열이 단일 진실 소스.
+            SocialLoginButtonStack(options: auth.loginOptions) { provider in
+                signIn(provider)
             }
+            .setCornerRadius(cornerRadius)
+            .setIsLoading($isLoading)
 
             HStack {
                 Text("cornerRadius \(Int(cornerRadius))")

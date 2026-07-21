@@ -2,7 +2,8 @@
 //  UIKitLoginViewController.swift
 //  AuthSample
 //
-//  SocialLoginUIButton (UIKit) 데모 — set~ 체이닝과 setLoading 상태 전환.
+//  SocialLoginUIButtonStack (UIKit) 데모 — auth.loginOptions 를 그대로 받아
+//  등록된 provider 만 노출한다. set~ 체이닝과 setLoading 상태 전환.
 //
 
 import AuthKit
@@ -23,20 +24,9 @@ final class UIKitLoginViewController: UIViewController {
 
     private let auth: any AuthService
 
-    private lazy var buttons: [SocialLoginUIButton] = [
-        SocialLoginUIButton()
-            .setProvider(.apple)
-            .setOnTap { [weak self] in self?.signIn(.apple) },
-        SocialLoginUIButton()
-            .setProvider(.kakao)
-            .setCornerRadius(20)
-            .setOnTap { [weak self] in self?.signIn(.kakao) },
-        SocialLoginUIButton()
-            .setProvider(.google)
-            .setCornerRadius(26)
-            .setHeight(56)
-            .setOnTap { [weak self] in self?.signIn(.google) },
-    ]
+    private lazy var loginStack = SocialLoginUIButtonStack(options: auth.loginOptions)
+        .setCornerRadius(20)
+        .setOnTap { [weak self] provider in self?.signIn(provider) }
 
     private let logLabel = UILabel()
 
@@ -63,10 +53,9 @@ final class UIKitLoginViewController: UIViewController {
         logLabel.numberOfLines = 0
         logLabel.text = "버튼을 눌러보세요"
 
-        let stack = UIStackView(arrangedSubviews: [titleLabel] + buttons + [logLabel])
+        let stack = UIStackView(arrangedSubviews: [titleLabel, loginStack, logLabel])
         stack.axis = .vertical
-        stack.spacing = 12
-        stack.setCustomSpacing(24, after: titleLabel)
+        stack.spacing = 24
 
         view.addSubview(stack)
         stack.translatesAutoresizingMaskIntoConstraints = false
@@ -78,10 +67,10 @@ final class UIKitLoginViewController: UIViewController {
     }
 
     private func signIn(_ provider: SocialProvider) {
-        buttons.forEach { $0.setLoading(true) }
+        loginStack.setLoading(true)
 
         Task { @MainActor in
-            defer { buttons.forEach { $0.setLoading(false) } }
+            defer { loginStack.setLoading(false) }
 
             do {
                 let result = try await auth.signIn(with: provider) { [weak self] in

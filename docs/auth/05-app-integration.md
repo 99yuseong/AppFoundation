@@ -11,6 +11,7 @@ Xcode: **File → Add Package Dependencies** → `git@github.com:{계정}/AppFou
 |---|---|
 | Apple + Kakao (예: TumTumRead) | `AuthKit`, `AuthKitSupabase`, `AuthKitApple`, `AuthKitKakao` (+`CoreKit`) |
 | Apple + Google (예: Doran) | `AuthKit`, `AuthKitSupabase`, `AuthKitApple`, `AuthKitGoogle` (+`CoreKit`) |
+| 자체 서버 백엔드 | `AuthKitSupabase` 대신 `AuthKitREST` ([08 문서](08-custom-backend.md)) |
 
 ### 로컬 개발 오버라이드
 
@@ -57,9 +58,12 @@ let authService: any AuthService = DefaultAuthService(
         client: client,
         configuration: .init(supabaseURL: supabaseURL, apiKey: supabaseKey)
     ),
+    // 주입 순서 = 로그인 버튼 노출 순서. 버튼 디자인(branding)도 provider 가
+    // 소유한다 — 기본값 내장, 생성자로 오버라이드.
     providers: [
-        AppleAuthProvider(),
-        KakaoAuthProvider(),
+        AppleAuthProvider(),                          // = branding: .apple()
+        KakaoAuthProvider(),                          // = branding: .kakao
+        // AppleAuthProvider(branding: .apple(.whiteOutline)),
         // GoogleAuthProvider(clientID: ConfigValues.require("GOOGLE_CLIENT_ID")),
     ]
 )
@@ -117,29 +121,38 @@ let withdrawal = try WithdrawalCredential(folding: credential)
 
 ## 7. 로그인 버튼 (SwiftUI / UIKit)
 
-브랜드 스펙(색·로고·ko/en/ja 문구)이 적용된 버튼을 제공한다. provider별 타입 대신
-**`setProvider` 로 전환**하고, 설정값은 `set~` 빌더 모디파이어로 수정한다.
+브랜드 스펙(색·로고·ko/en/ja 문구)이 적용된 버튼을 제공한다. **조립 시 주입한
+provider 만** `auth.loginOptions` 로 노출된다(주입 순서 = 노출 순서) — 버튼에
+provider 를 나열하는 코드가 앱에 없다. 설정값은 `set~` 빌더 모디파이어로 수정한다.
 
 ```swift
-// SwiftUI
+// SwiftUI — 스택 (표준)
 @State private var isLoading = false
 
-SocialLoginButton { viewModel.signIn(.kakao) }
-    .setProvider(.kakao)          // .apple(기본) | .google | .kakao
-    .setCornerRadius(16)          // 기본 12
-    .setHeight(56)                // 기본 52
-    .setIsLoading($isLoading)     // true 면 스피너 + 비활성
-    .setAppleStyle(.whiteOutline) // apple 전용 HIG 3종 (기본 .black)
+SocialLoginButtonStack(options: auth.loginOptions) { provider in
+    viewModel.signIn(provider)
+}
+.setCornerRadius(16)              // 기본 12 (전 버튼 일괄)
+.setHeight(56)                    // 기본 52
+.setSpacing(12)                   // 기본 12
+.setIsLoading($isLoading)         // true 면 스피너 + 비활성
 
-// UIKit
-let button = SocialLoginUIButton()
-    .setProvider(.google)
+// UIKit — 스택
+let stack = SocialLoginUIButtonStack(options: auth.loginOptions)
     .setCornerRadius(16)
-    .setOnTap { [weak self] in self?.signInGoogle() }
-button.setLoading(true)           // 요청 중 스피너 + isEnabled=false
+    .setOnTap { [weak self] provider in self?.signIn(provider) }
+stack.setLoading(true)            // 요청 중 전 버튼 스피너 + isEnabled=false
+
+// 단독 배치가 필요할 때 (수동)
+SocialLoginButton(option: .init(provider: .kakao, branding: .kakao)) {
+    viewModel.signIn(.kakao)
+}
+.setCornerRadius(16)
 ```
 
-버튼 문구는 시스템 언어(ko/en/ja)를 따른다. 동작 예시는
+버튼 디자인은 provider 생성자에서 바꾼다 (`AppleAuthProvider(branding:
+.apple(.whiteOutline))`). 문구는 시스템 언어(ko/en/ja)를 따르고, 커스텀 provider 의
+버튼 추가는 [08 문서](08-custom-backend.md) 참조. 동작 예시는
 [`Examples/AuthSample`](../../Examples/AuthSample/README.md) 참조.
 
 ## 8. 취소 처리

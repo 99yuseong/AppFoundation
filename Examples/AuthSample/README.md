@@ -1,16 +1,17 @@
 # AuthSample
 
-AppFoundation **AuthKit** 데모 앱 — `SocialLoginButton`(SwiftUI) / `SocialLoginUIButton`(UIKit)
-과 로그인 플로우를 보여준다.
+AppFoundation **AuthKit** 데모 앱 — `SocialLoginButtonStack`(SwiftUI) /
+`SocialLoginUIButtonStack`(UIKit)과 로그인 플로우를 보여준다.
 
 ## 실행
 
 `AuthSample.xcodeproj` 를 열고 시뮬레이터에서 Run. 기본은 **MockAuthService** 라
 콘솔 설정 없이 바로 동작한다 (버튼 UI·isLoading·cornerRadius 데모 목적).
 
-- **SwiftUI 탭**: `SocialLoginButton` — `setProvider` 3종, `setIsLoading($isLoading)`
-  바인딩, `setCornerRadius` 슬라이더 실시간 반영
-- **UIKit 탭**: `SocialLoginUIButton` — `set~` 체이닝, `setLoading(_:)` 상태 전환
+- **SwiftUI 탭**: `SocialLoginButtonStack(options: auth.loginOptions)` — 등록된
+  provider 만 노출, `setIsLoading($isLoading)` 바인딩, `setCornerRadius` 슬라이더
+  실시간 반영
+- **UIKit 탭**: `SocialLoginUIButtonStack` — `set~` 체이닝, `setLoading(_:)` 상태 전환
 
 버튼 문구는 ko / en / ja 로컬라이제이션 — 시뮬레이터 언어를 바꾸면 확인 가능.
 

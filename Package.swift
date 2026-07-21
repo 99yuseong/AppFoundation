@@ -37,12 +37,14 @@ let package = Package(
         .target(
             name: "CoreKit",
             path: "Sources/Core/CoreKit",
+            exclude: ["CLAUDE.md"],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
         .target(
             name: "AuthKit",
             dependencies: ["CoreKit"],
             path: "Sources/Auth/Core/AuthKit",
+            exclude: ["CLAUDE.md"],
             resources: [.process("Resources")],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
@@ -50,6 +52,7 @@ let package = Package(
             name: "AuthKitApple",
             dependencies: ["AuthKit"],
             path: "Sources/Auth/Providers/AuthKitApple",
+            exclude: ["CLAUDE.md"],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
         .target(
@@ -59,6 +62,7 @@ let package = Package(
                 .product(name: "GoogleSignIn", package: "GoogleSignIn-iOS"),
             ],
             path: "Sources/Auth/Providers/AuthKitGoogle",
+            exclude: ["CLAUDE.md"],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
         .target(
@@ -70,6 +74,7 @@ let package = Package(
                 .product(name: "KakaoSDKUser", package: "kakao-ios-sdk"),
             ],
             path: "Sources/Auth/Providers/AuthKitKakao",
+            exclude: ["CLAUDE.md"],
             // KakaoSDK 완료 핸들러가 Sendable 미표기 — v6 strict 에서 소음이 커
             // v5 모드로 둔다 (Doran AdKit 과 같은 선례).
             swiftSettings: [.swiftLanguageMode(.v5)]
@@ -81,12 +86,14 @@ let package = Package(
                 .product(name: "Supabase", package: "supabase-swift"),
             ],
             path: "Sources/Auth/Backends/AuthKitSupabase",
+            exclude: ["CLAUDE.md"],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
         .target(
             name: "AuthKitREST",
             dependencies: ["AuthKit"],
             path: "Sources/Auth/Backends/AuthKitREST",
+            exclude: ["CLAUDE.md"],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
         .testTarget(

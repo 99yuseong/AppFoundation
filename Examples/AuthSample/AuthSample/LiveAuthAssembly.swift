@@ -41,6 +41,8 @@ enum LiveAuthAssembly {
                 client: client,
                 configuration: .init(supabaseURL: supabaseURL, apiKey: supabaseKey)
             ),
+            // 주입 순서 = 로그인 버튼 노출 순서. 버튼 디자인은 provider 가 소유하며
+            // 생성자로 오버라이드한다 (예: AppleAuthProvider(branding: .apple(.whiteOutline))).
             providers: [
                 AppleAuthProvider(),
                 KakaoAuthProvider(),
