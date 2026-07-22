@@ -6,7 +6,8 @@
 ## Products
 
 Auth 는 3계층 — **Core**(타입·오케스트레이터·버튼) / **Providers**(credential 획득) /
-**Backends**(세션 교환) — 로 나뉘어 어느 백엔드와도 조합된다. 계층은 디렉토리로
+**Backends**(세션 교환) — 로 나뉘어 어느 백엔드와도 조합된다. API 도메인도 같은 구조 —
+**Core**(계약 계층 `APIKit`) / **Backends**(실행 `APIKitSupabase`). 계층은 디렉토리로
 표현하고, **product 는 외부 SDK 경계에서만** 쪼갠다(빌드 그래프를 가볍게 유지).
 
 | product | 계층 | 내용 | 외부 의존성 | 상태 |
@@ -17,6 +18,8 @@ Auth 는 3계층 — **Core**(타입·오케스트레이터·버튼) / **Provide
 | `AuthKitGoogle` | Provider | Google | GoogleSignIn-iOS | ✅ |
 | `AuthKitKakao` | Provider | Kakao (네이티브, OIDC) | kakao-ios-sdk | ✅ |
 | `AuthKitSupabase` | Backend | Supabase (`SupabaseAuthBackend`) | supabase-swift | ✅ |
+| `APIKit` | Core | 서버 API 계약 계층 — `APIClient`(`request`/`stream`), `Endpoint` 선언 메타데이터, 중립 `APIError`·envelope, `MockAPIClient` | 없음 | ✅ |
+| `APIKitSupabase` | Backend | `SupabaseAPIClient` — EF/RPC/DB/Storage/Realtime 라우팅, `mapServerError` 훅 | supabase-swift | ✅ |
 | `PurchaseKit` / `AdsKit` / `AnalyticsKit` / Push | — | — | — | 예정 |
 
 ## 빠른 시작 (Auth)

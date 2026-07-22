@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.4.0 (2026-07-23)
+
+### 추가 — API 도메인 (Doran-iOS APIClient 이식)
+- `APIKit`: 서버 API 계약 계층 (SDK 무의존) — `APIClient`(`request`/`stream` 단일
+  진입), `Endpoint`(`name`·`transport`·`method`·`task` 선언 메타데이터, Moya
+  TargetType 참고), 개방형 `EndpointTransport`/`HTTPMethod`, `EndpointTask`
+  (`.plain`/`.json`/`.query`/`.upload`), 중립 `APIError` + `{ok,data}` envelope,
+  `EndpointKey`, `MockAPIClient`(EndpointKey 별 JSON 주입 + 호출 순서 기록)
+- `APIKitSupabase`: `SupabaseAPIClient` — EF(`functions.invoke` + envelope 해체) /
+  RPC(배열-first 디코드) / DB·Storage·Realtime(엔드포인트가 SDK 직접 실행) 라우팅,
+  `mapServerError` 훅(앱 도메인 에러 매핑), `DatabaseEndpoint`/`StorageEndpoint`/
+  `RealtimeEndpoint` + Context, `SupabaseTable`/`SupabaseBucket`,
+  `SupabaseSessionUserIDProvider`
+- `docs/api/00-overview.md`: 비용 원칙(EF 호출 제한 → 클라 조합)·선언 관례·서버
+  확장 마이그레이션 스토리·SupabaseClient 공유 규칙
+
+### 출처
+Doran-iOS 의 검증된 APIClient/Supabase 시스템을 일반화·이식 (앱 전용 에러 코드는
+훅으로 분리, Realtime 구독·method/task 선언 메타데이터는 신규 설계).
+
 ## 0.3.0 (2026-07-21)
 
 ### 추가
