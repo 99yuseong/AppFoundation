@@ -35,6 +35,16 @@ struct MockAPIClientTests {
         #expect(row == Row(value: 2))
     }
 
+    @Test("rpc — 빈 배열은 실구현과 같은 empty_rpc_result")
+    func rpcEmptyArray() async {
+        let key = EndpointKey(name: "session_init", transport: .rpc)
+        let mock = MockAPIClient(responses: [key: "[]"])
+
+        await #expect(throws: APIError.server(code: "empty_rpc_result", message: "session_init 이 빈 결과 반환")) {
+            let _: Row = try await mock.request(TestEndpoint(name: "session_init", transport: .rpc))
+        }
+    }
+
     @Test("EmptyResponse — 응답 미지정이어도 성공")
     func emptyResponseShortcut() async throws {
         let mock = MockAPIClient()

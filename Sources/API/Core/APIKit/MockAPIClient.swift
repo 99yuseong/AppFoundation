@@ -43,10 +43,12 @@ public final class MockAPIClient: APIClient, @unchecked Sendable {
             throw APIError.server(code: "no_mock", message: "\(key.name) 응답 미지정")
         }
         let data = Data(json.utf8)
-        // 실구현(RPC 의 배열-first 디코드)과 같은 경로를 태운다.
+        // 실구현(RPC 의 배열-first 디코드, 빈 배열 → empty_rpc_result)과 같은 경로를 태운다.
         if key.transport == .rpc,
-           let rows = try? JSONDecoder().decode([Response].self, from: data),
-           let first = rows.first {
+           let rows = try? JSONDecoder().decode([Response].self, from: data) {
+            guard let first = rows.first else {
+                throw APIError.server(code: "empty_rpc_result", message: "\(key.name) 이 빈 결과 반환")
+            }
             return first
         }
         return try JSONDecoder().decode(Response.self, from: data)
