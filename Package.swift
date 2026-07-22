@@ -8,6 +8,8 @@ import PackageDescription
 //   Auth/Core/           AuthKit 코어 (타입·프로토콜·오케스트레이터·버튼)
 //   Auth/Providers/      AuthKitApple, AuthKitGoogle, AuthKitKakao (credential 획득)
 //   Auth/Backends/       AuthKitSupabase, AuthKitREST (credential ↔ 세션 교환)
+//   API/Core/            APIKit (서버 API 계약 계층 — Endpoint·APIClient, SDK 무의존)
+//   API/Backends/        APIKitSupabase (EF/RPC/DB/Storage/Realtime 실행)
 //   (추후)               Ads/AdsKit, Purchase/PurchaseKit, Analytics/AnalyticsKit, Push/…
 //
 // 타깃 분리 기준 = 외부 SDK 의존 (계층이 아니다).
@@ -28,6 +30,8 @@ let package = Package(
         .library(name: "AuthKitGoogle",   targets: ["AuthKitGoogle"]),
         .library(name: "AuthKitKakao",    targets: ["AuthKitKakao"]),
         .library(name: "AuthKitSupabase", targets: ["AuthKitSupabase"]),
+        .library(name: "APIKit",          targets: ["APIKit"]),
+        .library(name: "APIKitSupabase",  targets: ["APIKitSupabase"]),
     ],
     dependencies: [
         // 하한 = TumTumRead 현재 pin(2.29.3). Doran(2.51.0)과 range 호환.
@@ -99,6 +103,22 @@ let package = Package(
             exclude: ["CLAUDE.md"],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
+        .target(
+            name: "APIKit",
+            path: "Sources/API/Core/APIKit",
+            exclude: ["CLAUDE.md"],
+            swiftSettings: [.swiftLanguageMode(.v6)]
+        ),
+        .target(
+            name: "APIKitSupabase",
+            dependencies: [
+                "APIKit",
+                .product(name: "Supabase", package: "supabase-swift"),
+            ],
+            path: "Sources/API/Backends/APIKitSupabase",
+            exclude: ["CLAUDE.md"],
+            swiftSettings: [.swiftLanguageMode(.v6)]
+        ),
         .testTarget(
             name: "AuthKitTests",
             dependencies: ["AuthKit"],
@@ -108,6 +128,16 @@ let package = Package(
             name: "AuthKitSupabaseTests",
             dependencies: ["AuthKitSupabase"],
             path: "Tests/Auth/AuthKitSupabaseTests"
+        ),
+        .testTarget(
+            name: "APIKitTests",
+            dependencies: ["APIKit"],
+            path: "Tests/API/APIKitTests"
+        ),
+        .testTarget(
+            name: "APIKitSupabaseTests",
+            dependencies: ["APIKitSupabase"],
+            path: "Tests/API/APIKitSupabaseTests"
         ),
     ]
 )

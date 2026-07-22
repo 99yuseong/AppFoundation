@@ -8,12 +8,15 @@
 ```
 Sources/{Domain}/{Layer}/{Target}
 ├── Core/CoreKit                    # 도메인 무관 최소 기반 (계층 없음)
-└── Auth/
-    ├── Core/AuthKit                # 타입·프로토콜·오케스트레이터·로그인 버튼 (SDK 무의존)
-    ├── Providers/AuthKit{Apple,Google,Kakao}   # credential 획득 (provider SDK 소유)
-    └── Backends/
-        ├── AuthKitSupabase         # supabase-swift → 별도 타깃
-        └── AuthKitREST             # 의존성 zero → AuthKit 타깃에 포함 (폴더만 분리)
+├── Auth/
+│   ├── Core/AuthKit                # 타입·프로토콜·오케스트레이터·로그인 버튼 (SDK 무의존)
+│   ├── Providers/AuthKit{Apple,Google,Kakao}   # credential 획득 (provider SDK 소유)
+│   └── Backends/
+│       ├── AuthKitSupabase         # supabase-swift → 별도 타깃
+│       └── AuthKitREST             # 의존성 zero → AuthKit 타깃에 포함 (폴더만 분리)
+└── API/
+    ├── Core/APIKit                 # 서버 API 계약 계층 — Endpoint·APIClient (SDK 무의존)
+    └── Backends/APIKitSupabase     # EF/RPC/DB/Storage/Realtime 실행 (supabase-swift 소유)
 ```
 
 - **폴더 = 계층, 타깃 = SDK 경계.** 이 둘은 1:1 이 아니다. 계층 구분은 디렉토리로
@@ -23,7 +26,7 @@ Sources/{Domain}/{Layer}/{Target}
   (Package.swift 에서 `path: "Sources/Auth"` + SDK 폴더 `exclude`).
   → 새 계층·폴더를 추가할 때 **자동으로 새 타깃을 만들지 말 것.** 외부 SDK 를
     물지 않으면 기존 타깃의 `path` 안에 폴더만 추가한다.
-- **의존 방향은 안쪽으로만**: Providers/Backends → Core(AuthKit) → CoreKit.
+- **의존 방향은 안쪽으로만**: Providers/Backends → Core(AuthKit/APIKit) → CoreKit.
   Provider 와 Backend 는 서로 import 하지 않는다.
 - **product 분리 원칙**: 외부 SDK 의존이 있는 타겟은 반드시 별도 product.
   provider 는 전부 `AuthKit{Provider}` 대칭 규칙 (외부 SDK 가 없는 Apple 도 동일 —
@@ -38,6 +41,9 @@ Sources/{Domain}/{Layer}/{Target}
 - 버튼·서비스에 provider switch 를 새로 넣지 않는다. 디자인은 `AuthProvider.branding`
   (생성자 주입), 노출 목록은 `AuthService.loginOptions`(주입 순서 = 노출 순서)가
   단일 진실 소스다.
+- API 도메인도 동일: `EndpointTransport`/`HTTPMethod` 는 개방형 String struct.
+  `APIClient` 는 `request`/`stream` 단일 진입 — verb 별 메서드를 추가하지 않는다
+  (verb·페이로드는 `Endpoint.method`/`.task` 선언 메타데이터, 강제 없음).
 
 ## 뷰 컴포넌트 컨벤션 (set~ 빌더)
 
@@ -85,4 +91,5 @@ PR 마다 두 워크플로우가 돈다 — 둘 다 Claude 기반이고 ubuntu �
 ## 문서
 
 - 설정 순서·서버 계약: `docs/auth/00~08` (00 이 진입점)
+- API 도메인 개념·비용 원칙·서버 확장 스토리: `docs/api/00-overview.md`
 - 신규 앱 통합 안내 스킬: `.claude/skills/auth-setup`
