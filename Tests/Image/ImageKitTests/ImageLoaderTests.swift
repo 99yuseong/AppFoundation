@@ -179,6 +179,48 @@ struct ImageLoaderTests {
         await loader.clearCache()
     }
 
+    @Test("대기자 전원 취소 — 공유 다운로드는 완주하고 디스크 캐시를 데운다")
+    func cancelledWaiterStillWarmsDiskCache() async throws {
+        StubImageURLProtocol.reset()
+        let png = TestImages.pngData(width: 40, height: 40)
+        let downloadStarted = LockedBox<Bool>()
+        StubImageURLProtocol.handler = { _ in
+            downloadStarted.set(true)
+            Thread.sleep(forTimeInterval: 0.1)    // 취소가 다운로드 도중에 걸리게
+            return (200, png)
+        }
+
+        let diskName = Self.uniqueDiskName()
+        let loader = Self.makeLoader(diskName: diskName)
+
+        let waiter = Task { try await loader.image(for: Self.url) }
+        // 다운로드가 실제로 시작된 뒤 취소한다.
+        while downloadStarted.value != true {
+            try await Task.sleep(for: .milliseconds(5))
+        }
+        waiter.cancel()
+        _ = try? await waiter.value
+
+        // 취소와 무관하게 공유 다운로드가 디스크를 데웠는지 — 저장은 비동기라 잠시 대기.
+        let disk = DiskCache(name: diskName, byteLimit: 0)
+        var stored: Data?
+        for _ in 0..<100 {
+            stored = await disk.data(for: Self.url.absoluteString)
+            if stored != nil { break }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(stored == png)
+        #expect(StubImageURLProtocol.requestCount == 1)
+
+        // 다음 요청은 재다운로드 없이 디스크 히트.
+        let fresh = Self.makeLoader(diskName: diskName)
+        let result = try await fresh.image(for: Self.url)
+        #expect(result.source == .disk)
+        #expect(StubImageURLProtocol.requestCount == 1)
+
+        await loader.clearCache()
+    }
+
     @Test("디스크 손상 항목 — 정리하고 네트워크로 폴백한다")
     func corruptDiskEntryFallsBack() async throws {
         StubImageURLProtocol.reset()

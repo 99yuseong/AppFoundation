@@ -23,4 +23,6 @@
   `ImageLoadResult.source` 가 이 판단의 근거다.
 - 디코드·다운샘플은 `@concurrent` 경로 — 로더 actor·메인 액터를 잡지 않는다.
 - 대기자 취소는 공유 다운로드를 멈추지 않는다 — 받은 데이터는 캐시를 데운다.
+  이를 보장하려고 **디스크 저장·in-flight 정리는 공유 다운로드 Task 가 소유**한다
+  (대기자 코드 경로에 두면 전원 취소 시 방금 받은 바이트가 버려진다).
 - 보류 (수요 증명 시): progressive JPEG, low-data-mode 대체 소스, 프로세서 체인, prefetch.

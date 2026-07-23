@@ -102,13 +102,13 @@ public actor ImageLoader {
             }
         }
 
+        // 디스크 캐시는 공유 다운로드 Task 가 데운다 (fetchData 참조) — 여기서
+        // 저장하면 대기자 취소 시 방금 받은 바이트가 캐시 없이 버려진다.
         let data = try await fetchData(from: url, retry: options.retry, onProgress: onProgress)
-        try Task.checkCancellation()
 
         let image = try await Self.makeImage(from: data, maxPixelSize: options.maxPixelSize)
-
-        await diskCache.store(data, for: url.absoluteString)
         storeInMemory(image, key: memoryKey)
+        try Task.checkCancellation()
 
         return ImageLoadResult(image: image, source: .network)
     }
@@ -131,13 +131,18 @@ public actor ImageLoader {
 
         if inFlight[key] == nil {
             // 대기자 취소와 분리된 공유 다운로드 — detached 라 actor 를 잡지도 않는다.
-            let task = Task.detached { [session] () throws -> Data in
+            // 디스크 캐시 저장·inFlight 정리도 이 Task 가 소유한다: 대기자 전원이
+            // 취소돼도 받은 데이터는 캐시에 남고, 엔트리는 정확히 한 번 제거된다.
+            let task = Task.detached { [session, diskCache] () throws -> Data in
+                defer { Task { await self.finishInFlight(key: key) } }
                 var attempt = 0
                 while true {
                     do {
-                        return try await Self.download(from: url, session: session) { received, total in
+                        let data = try await Self.download(from: url, session: session) { received, total in
                             await self.notifyProgress(key: key, received: received, total: total)
                         }
+                        await diskCache.store(data, for: key)
+                        return data
                     } catch is CancellationError {
                         throw CancellationError()
                     } catch {
@@ -164,14 +169,14 @@ public actor ImageLoader {
             throw CancellationError()
         }
 
-        do {
-            let data = try await task.value
-            inFlight.removeValue(forKey: key)
-            return data
-        } catch {
-            inFlight.removeValue(forKey: key)
-            throw error
-        }
+        // 엔트리 제거는 다운로드 Task 의 finishInFlight 몫 — 대기자가 여기서 지우면
+        // 취소된 대기자 하나가 진행 중인 다운로드의 dedup 을 깨뜨린다.
+        return try await task.value
+    }
+
+    /// 공유 다운로드 종료 시(성공/실패 공통) 엔트리를 제거한다 — 이후 요청은 새로 시작.
+    private func finishInFlight(key: String) {
+        inFlight.removeValue(forKey: key)
     }
 
     private func notifyProgress(key: String, received: Int64, total: Int64) {
