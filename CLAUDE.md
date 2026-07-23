@@ -14,16 +14,21 @@ Sources/{Domain}/{Layer}/{Target}
 │   └── Backends/
 │       ├── AuthKitSupabase         # supabase-swift → 별도 타깃
 │       └── AuthKitREST             # 의존성 zero → AuthKit 타깃에 포함 (폴더만 분리)
-└── API/
-    ├── Core/APIKit                 # 서버 API 계약 계층 — Endpoint·APIClient (SDK 무의존)
-    └── Backends/APIKitSupabase     # EF/RPC/DB/Storage/Realtime 실행 (supabase-swift 소유)
+├── API/
+│   ├── Core/APIKit                 # 서버 API 계약 계층 — Endpoint·APIClient (SDK 무의존)
+│   └── Backends/
+│       ├── APIKitSupabase          # EF/RPC/DB/Storage/Realtime 실행 (supabase-swift 소유)
+│       └── APIKitREST              # URLSession 실행 — 의존성 zero → APIKit 타깃에 포함
+└── Image/
+    └── Core/ImageKit               # 다운샘플링·이미지 캐시 파이프라인·RemoteImage 뷰 쌍 (SDK 무의존)
 ```
 
 - **폴더 = 계층, 타깃 = SDK 경계.** 이 둘은 1:1 이 아니다. 계층 구분은 디렉토리로
   표현하고, **타깃은 외부 SDK 의존이 갈리는 지점에서만** 쪼갠다 — 타깃이 늘수록
   빌드 그래프가 무거워지므로 의존성 없는 계층끼리는 한 타깃으로 묶는다.
-  현재 `AuthKit` 타깃 = `Core/AuthKit` + `Backends/AuthKitREST`
-  (Package.swift 에서 `path: "Sources/Auth"` + SDK 폴더 `exclude`).
+  현재 `AuthKit` 타깃 = `Core/AuthKit` + `Backends/AuthKitREST`,
+  `APIKit` 타깃 = `Core/APIKit` + `Backends/APIKitREST`
+  (Package.swift 에서 `path` 를 도메인 루트로 올리고 SDK 폴더만 `exclude`).
   → 새 계층·폴더를 추가할 때 **자동으로 새 타깃을 만들지 말 것.** 외부 SDK 를
     물지 않으면 기존 타깃의 `path` 안에 폴더만 추가한다.
 - **의존 방향은 안쪽으로만**: Providers/Backends → Core(AuthKit/APIKit) → CoreKit.

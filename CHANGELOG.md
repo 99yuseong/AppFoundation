@@ -1,6 +1,24 @@
 # Changelog
 
-## 0.4.0 (2026-07-23)
+## 0.5.0 (2026-07-23)
+
+### 추가 — 캐시 · REST 백엔드 · Image 도메인
+- `CoreKit/Cache`: 제네릭 캐시 프리미티브 — `MemoryCache`(NSCache 어댑터, String
+  키 + 임의 값 타입) + `DiskCache`(actor, SHA256 파일명, 저장 시각 기준 TTL,
+  byteLimit 초과 시 마지막 접근 오래된 순 LRU 축출)
+- `APIKitREST`: `RESTAPIClient` — `APIClient` 의 URLSession 실구현 (의존 zero 라
+  `APIKit` 타깃에 포함, AuthKitREST 선례). `EndpointTransport.http` 신설 —
+  `Endpoint.name` = path, 선언 메타데이터였던 `method` 가 처음 실제 전송 verb 로
+  쓰인다. `unwrapping: .raw`(기본)/`.envelope`(자기 서버 계약 opt-in), `adapt`
+  훅(토큰 주입), `mapServerError` 훅(Supabase 백엔드와 대칭). `stream` 은 v1 미지원
+- `ImageKit` (신규 도메인 `Sources/Image/`): 원격 이미지 파이프라인 + 비동기 뷰 쌍
+  - `ImageLoader` — 메모리(다운샘플 결과) → 디스크(원본 Data) → URLSession.
+    같은 URL 동시 요청은 다운로드 1회 공유(dedup) + 진행률 멀티캐스트, 재시도 내장
+  - `ImageDownsampler` — ImageIO 썸네일 경로 (풀 디코드 없이 메모리 피크 억제)
+  - `RemoteImage`(SwiftUI) / `RemoteUIImage`(UIKit) — set~ 빌더 컨벤션,
+    Kingfisher 모디파이어군 참고: placeholder·failureImage·onProgress·fade
+    (디스크/네트워크 로드만, 메모리 히트는 즉시 표시)·onSuccess/onFailure·retry·
+    maxPixelSize·forceRefresh·cancelOnDisappear(+UIKit 인디케이터)
 
 ### 추가 — API 도메인 (Doran-iOS APIClient 이식)
 - `APIKit`: 서버 API 계약 계층 (SDK 무의존) — `APIClient`(`request`/`stream` 단일

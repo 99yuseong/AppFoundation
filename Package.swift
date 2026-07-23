@@ -11,6 +11,7 @@ import PackageDescription
 //   API/Core/            APIKit (서버 API 계약 계층 — Endpoint·APIClient, SDK 무의존)
 //   API/Backends/        APIKitSupabase (EF/RPC/DB/Storage/Realtime 실행),
 //                        APIKitREST (URLSession 실행 — APIKit 타깃에 포함)
+//   Image/Core/          ImageKit (다운샘플링·이미지 캐시 파이프라인·RemoteImage 뷰 쌍)
 //   (추후)               Ads/AdsKit, Purchase/PurchaseKit, Analytics/AnalyticsKit, Push/…
 //
 // 타깃 분리 기준 = 외부 SDK 의존 (계층이 아니다).
@@ -34,6 +35,7 @@ let package = Package(
         .library(name: "AuthKitSupabase", targets: ["AuthKitSupabase"]),
         .library(name: "APIKit",          targets: ["APIKit"]),
         .library(name: "APIKitSupabase",  targets: ["APIKitSupabase"]),
+        .library(name: "ImageKit",        targets: ["ImageKit"]),
     ],
     dependencies: [
         // 하한 = TumTumRead 현재 pin(2.29.3). Doran(2.51.0)과 range 호환.
@@ -126,6 +128,13 @@ let package = Package(
             exclude: ["CLAUDE.md"],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
+        .target(
+            name: "ImageKit",
+            dependencies: ["CoreKit"],
+            path: "Sources/Image/Core/ImageKit",
+            exclude: ["CLAUDE.md"],
+            swiftSettings: [.swiftLanguageMode(.v6)]
+        ),
         .testTarget(
             name: "CoreKitTests",
             dependencies: ["CoreKit"],
@@ -150,6 +159,11 @@ let package = Package(
             name: "APIKitSupabaseTests",
             dependencies: ["APIKitSupabase"],
             path: "Tests/API/APIKitSupabaseTests"
+        ),
+        .testTarget(
+            name: "ImageKitTests",
+            dependencies: ["ImageKit"],
+            path: "Tests/Image/ImageKitTests"
         ),
     ]
 )
