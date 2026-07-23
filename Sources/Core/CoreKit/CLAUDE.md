@@ -7,6 +7,8 @@
 
 - `ConfigValues` — Info.plist 설정 로더 (`require(_:)` / `optional(_:)`)
 - `TopMostPresenter` — 최상단 뷰컨트롤러 탐색 (SwiftUI 에서 presenter 공급용)
+- `Cache/` — 제네릭 캐시 프리미티브. `MemoryCache`(NSCache 어댑터) +
+  `DiskCache`(Caches/ 하위, TTL·byteLimit LRU). `Cache` 프로토콜 추상화는 두지 않는다.
 
 ## 여기 넣지 말 것
 

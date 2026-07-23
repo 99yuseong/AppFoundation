@@ -1,11 +1,12 @@
-# API 도메인 개요 — APIKit · APIKitSupabase
+# API 도메인 개요 — APIKit · APIKitSupabase · APIKitREST
 
-앱단에서 서버 호출(EF/RPC/DB/Storage/Realtime)을 **하나의 API** 로 간주하게 하는
-계약 계층. Doran-iOS 의 검증된 APIClient 구조를 이식했다.
+앱단에서 서버 호출(EF/RPC/DB/Storage/Realtime/HTTP)을 **하나의 API** 로 간주하게
+하는 계약 계층. Doran-iOS 의 검증된 APIClient 구조를 이식했다.
 
 ```
 Repository ──▶ APIClient (APIKit — 계약, SDK 무의존)
-                  └─ SupabaseAPIClient (APIKitSupabase — 실행, supabase-swift)
+                  ├─ SupabaseAPIClient (APIKitSupabase — 실행, supabase-swift)
+                  └─ RESTAPIClient (APIKitREST — URLSession 실행, 의존 zero → APIKit 타깃에 포함)
 ```
 
 ## 핵심 원칙
@@ -48,10 +49,27 @@ realtime 구독 → `.get`+`.plain`.
 자체 서버로 확장하는 날, 변경은 이렇게 흐른다:
 
 1. endpoint 의 `executeDatabase`/`executeStorage` 안 클라 조합 로직이 **서버로 이동**한다.
-2. endpoint 는 선언만 바뀐다 — transport 를 서버 호출로 전환. 이미 선언된 `method` 가
-   REST 라우트의 verb 가 된다 (추후 `APIKitREST` 가 `HTTPEndpoint`(method·path·query)
-   refinement 로 이 값을 실제 전송에 사용).
+2. endpoint 는 선언만 바뀐다 — transport 를 `.http` 로 전환하면 `RESTAPIClient` 가
+   이미 선언된 `method` 를 실제 전송 verb 로, `name` 을 URL path 로 사용한다.
 3. **Repository 는 무변경** — `APIClient` 프로토콜만 보기 때문.
+
+### 3.5 REST 백엔드 (`RESTAPIClient`)
+
+`.http` transport 전용 URLSession 백엔드. 두 용도를 `unwrapping` 주입으로 흡수한다:
+
+- `.raw` (기본): 응답 본문 전체가 Response — 서드파티/일반 REST API.
+- `.envelope`: `{ok:true,data}` 의 data 만 디코딩 — 자기 서버(EF 와 동일 계약) opt-in.
+
+```swift
+let api: any APIClient = RESTAPIClient(
+    baseURL: URL(string: "https://api.example.com/v1")!,
+    adapt: { request in var r = request; r.setValue("Bearer …", forHTTPHeaderField: "Authorization"); return r },
+    mapServerError: { code, _ in code == "account_banned" ? AppServerError.accountBanned : nil }
+)
+```
+
+실패 본문이 envelope 계약이면 unwrapping 과 무관하게 code 를 뽑아 훅 매핑을 태운다.
+per-endpoint headers·plugin 체계·`stream`(SSE)은 필요가 증명되면 추가한다.
 
 ### 4. 에러 — 중립 + 앱 훅
 
@@ -84,6 +102,6 @@ SupabaseAPIClient(client: supabase) { code, message in
 ## product 추가
 
 ```swift
-.product(name: "APIKit", package: "AppFoundation"),          // Repository 계층
+.product(name: "APIKit", package: "AppFoundation"),          // Repository 계층 (RESTAPIClient 포함)
 .product(name: "APIKitSupabase", package: "AppFoundation"),  // Composition Root + endpoint 구현
 ```
