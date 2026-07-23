@@ -120,6 +120,11 @@ let package = Package(
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
         .testTarget(
+            name: "CoreKitTests",
+            dependencies: ["CoreKit"],
+            path: "Tests/Core/CoreKitTests"
+        ),
+        .testTarget(
             name: "AuthKitTests",
             dependencies: ["AuthKit"],
             path: "Tests/Auth/AuthKitTests"
