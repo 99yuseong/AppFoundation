@@ -9,13 +9,15 @@ import PackageDescription
 //   Auth/Providers/      AuthKitApple, AuthKitGoogle, AuthKitKakao (credential 획득)
 //   Auth/Backends/       AuthKitSupabase, AuthKitREST (credential ↔ 세션 교환)
 //   API/Core/            APIKit (서버 API 계약 계층 — Endpoint·APIClient, SDK 무의존)
-//   API/Backends/        APIKitSupabase (EF/RPC/DB/Storage/Realtime 실행)
+//   API/Backends/        APIKitSupabase (EF/RPC/DB/Storage/Realtime 실행),
+//                        APIKitREST (URLSession 실행 — APIKit 타깃에 포함)
 //   (추후)               Ads/AdsKit, Purchase/PurchaseKit, Analytics/AnalyticsKit, Push/…
 //
 // 타깃 분리 기준 = 외부 SDK 의존 (계층이 아니다).
 // 계층은 디렉토리로 표현하고, 타깃은 SDK 경계에서만 쪼갠다 — 타깃이 늘수록
 // 빌드 그래프만 무거워지므로 의존성 없는 계층끼리는 한 타깃으로 묶는다.
 //   AuthKit  = Auth/Core/AuthKit + Auth/Backends/AuthKitREST (둘 다 의존성 zero)
+//   APIKit   = API/Core/APIKit  + API/Backends/APIKitREST  (둘 다 의존성 zero)
 // SPM 은 product 단위로 링크하므로, 앱은 자기가 쓰는 provider 만 골라 추가하면
 // 안 쓰는 SDK(KakaoSDK, GoogleSignIn)가 바이너리에 딸려 오지 않는다.
 
@@ -103,10 +105,15 @@ let package = Package(
             exclude: ["CLAUDE.md"],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
+        // Core + REST 백엔드를 한 타깃으로 묶는다 (AuthKit 과 같은 구조 — 둘 다 의존 zero).
         .target(
             name: "APIKit",
-            path: "Sources/API/Core/APIKit",
-            exclude: ["CLAUDE.md"],
+            path: "Sources/API",
+            exclude: [
+                "Backends/APIKitSupabase",      // 별도 타깃 (supabase-swift)
+                "Core/APIKit/CLAUDE.md",
+                "Backends/APIKitREST/CLAUDE.md",
+            ],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
         .target(
