@@ -53,7 +53,7 @@ Sources/Auth/
 | `AuthKitGoogle` | Provider | Google | GoogleSignIn-iOS |
 | `AuthKitKakao` | Provider | Kakao | kakao-ios-sdk |
 | `AuthKitSupabase` | Backend | Supabase | supabase-swift |
-| `CoreKit` | — | Info.plist 설정 로더, TopMostPresenter | 없음 |
+| `CoreKit` | — | Info.plist 설정 로더, TopMostPresenter, 캐시 프리미티브(`MemoryCache`/`DiskCache`) | 없음 |
 
 앱은 `AuthKit` + **사용하는 provider product 만** 추가한다. Supabase 를 쓰면
 `AuthKitSupabase` 를 더하고, 자체 서버면 `AuthKit` 에 내장된 `RESTAuthBackend` 를

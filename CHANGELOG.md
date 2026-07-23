@@ -20,6 +20,8 @@
     (디스크/네트워크 로드만, 메모리 히트는 즉시 표시)·onSuccess/onFailure·retry·
     maxPixelSize·forceRefresh·cancelOnDisappear(+UIKit 인디케이터)
 
+## 0.4.0 (2026-07-23)
+
 ### 추가 — API 도메인 (Doran-iOS APIClient 이식)
 - `APIKit`: 서버 API 계약 계층 (SDK 무의존) — `APIClient`(`request`/`stream` 단일
   진입), `Endpoint`(`name`·`transport`·`method`·`task` 선언 메타데이터, Moya
