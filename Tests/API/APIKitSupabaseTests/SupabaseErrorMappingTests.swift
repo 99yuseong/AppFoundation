@@ -5,6 +5,7 @@
 //  서버 (code, message) 매핑 — 훅 우선, 중립 APIError 폴백.
 //
 
+import Foundation
 import Testing
 import APIKit
 @testable import APIKitSupabase
@@ -37,5 +38,35 @@ struct SupabaseErrorMappingTests {
             code == "account_banned" ? DomainError.accountBanned : nil
         }
         #expect(api.mapError(code: "other", message: "m") as? APIError == .server(code: "other", message: "m"))
+    }
+
+    // MARK: - 부가 필드 전달
+
+    enum HintError: Error, Equatable {
+        case busy(negotiationID: String?)
+    }
+
+    @Test("훅이 실패 본문의 부가 필드를 받는다 — code/message 로는 못 싣는 값")
+    func hookReceivesDetails() {
+        let api = TestSupport.makeAPIClient { _, _, details in
+            HintError.busy(negotiationID: details?.string(forKey: "incoming_negotiation_id"))
+        }
+
+        let body = #"{"ok":false,"error":{"code":"callee_busy","message":"m","incoming_negotiation_id":"neg-7"}}"#
+        let mapped = api.mapError(
+            code: "callee_busy",
+            message: "m",
+            details: ServerErrorDetails(rawBody: Data(body.utf8))
+        )
+
+        #expect(mapped as? HintError == .busy(negotiationID: "neg-7"))
+    }
+
+    @Test("details 없는 경로(RPC 등)에서는 nil 로 들어온다")
+    func detailsAbsentForRPC() {
+        let api = TestSupport.makeAPIClient { _, _, details in
+            HintError.busy(negotiationID: details?.string(forKey: "incoming_negotiation_id"))
+        }
+        #expect(api.mapError(code: "callee_busy", message: "m") as? HintError == .busy(negotiationID: nil))
     }
 }

@@ -43,8 +43,11 @@ public struct RESTAPIClient: APIClient {
 
     private let unwrapping: ResponseUnwrapping
 
-    /// 서버 에러 (code, message) → 앱 도메인 에러 훅. nil 반환 시 중립 `APIError` 폴백.
-    private let mapServerError: (@Sendable (_ code: String, _ message: String) -> (any Error)?)?
+    /// 서버 에러 → 앱 도메인 에러 훅. nil 반환 시 중립 `APIError` 폴백.
+    /// `details` 는 실패 본문이 `{ok:false,error}` 규약일 때 원본이 실린다.
+    private let mapServerError: (
+        @Sendable (_ code: String, _ message: String, _ details: ServerErrorDetails?) -> (any Error)?
+    )?
 
     private let logger = Logger(subsystem: "AppFoundation", category: "APIKit.REST")
 
@@ -52,13 +55,16 @@ public struct RESTAPIClient: APIClient {
     private static let encoder = JSONEncoder()
     private static let decoder = JSONDecoder()
 
+    /// 부가 필드까지 받는 훅으로 조립한다.
     public init(
         baseURL: URL,
         session: URLSession = .shared,
         defaultHeaders: [String: String] = [:],
         adapt: (@Sendable (URLRequest) async throws -> URLRequest)? = nil,
         unwrapping: ResponseUnwrapping = .raw,
-        mapServerError: (@Sendable (_ code: String, _ message: String) -> (any Error)?)? = nil
+        mapServerError: (
+            @Sendable (_ code: String, _ message: String, _ details: ServerErrorDetails?) -> (any Error)?
+        )? = nil
     ) {
         self.baseURL = baseURL
         self.session = session
@@ -66,6 +72,29 @@ public struct RESTAPIClient: APIClient {
         self.adapt = adapt
         self.unwrapping = unwrapping
         self.mapServerError = mapServerError
+    }
+
+    /// `(code, message)` 훅만 쓰는 호출부용 팩토리.
+    ///
+    /// **생성자 오버로드로 두지 않는다** — 클로저 인자 수만 다른 오버로드는 클로저
+    /// 리터럴의 타입이 문맥에서 정해지므로 `self.init` 이 자기 자신으로 해소돼
+    /// 무한 재귀가 된다(실제로 그렇게 썼다가 컴파일러가 잡았다). 이름을 달리 둔다.
+    public static func withSimpleErrorMapping(
+        baseURL: URL,
+        session: URLSession = .shared,
+        defaultHeaders: [String: String] = [:],
+        adapt: (@Sendable (URLRequest) async throws -> URLRequest)? = nil,
+        unwrapping: ResponseUnwrapping = .raw,
+        mapServerError: @escaping @Sendable (_ code: String, _ message: String) -> (any Error)?
+    ) -> RESTAPIClient {
+        RESTAPIClient(
+            baseURL: baseURL,
+            session: session,
+            defaultHeaders: defaultHeaders,
+            adapt: adapt,
+            unwrapping: unwrapping,
+            mapServerError: { code, message, _ in mapServerError(code, message) }
+        )
     }
 
     // MARK: - APIClient
@@ -155,7 +184,11 @@ public struct RESTAPIClient: APIClient {
         guard !(200..<300).contains(response.statusCode) else { return }
 
         if let envelope = try? Self.decoder.decode(APIErrorEnvelope.self, from: data) {
-            throw mapError(code: envelope.error.code, message: envelope.error.message)
+            throw mapError(
+                code: envelope.error.code,
+                message: envelope.error.message,
+                details: ServerErrorDetails(rawBody: data)
+            )
         }
 
         let message = String(decoding: data, as: UTF8.self)
@@ -181,8 +214,12 @@ public struct RESTAPIClient: APIClient {
 
     /// 훅 우선 → 중립 `APIError` 폴백 (SupabaseAPIClient.mapError 와 동일 계약).
     /// (internal — 단위 테스트 대상)
-    func mapError(code: String, message: String) -> any Error {
-        if let custom = mapServerError?(code, message) {
+    func mapError(
+        code: String,
+        message: String,
+        details: ServerErrorDetails? = nil
+    ) -> any Error {
+        if let custom = mapServerError?(code, message, details) {
             return custom
         }
         return APIError(code: code, message: message)

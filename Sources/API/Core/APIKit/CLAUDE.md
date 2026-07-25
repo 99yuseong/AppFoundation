@@ -10,6 +10,8 @@
 - `EndpointTransport`·`HTTPMethod` — 개방형 String struct (`SocialProvider` 선례)
 - `EndpointTask` — `.plain`/`.json`/`.query`/`.upload` 페이로드 분류
 - `APIError` — 중립 에러 + code/envelope 매핑, `APIEnvelope`/`APIErrorEnvelope` — `{ok,data}` 계약
+- `ServerErrorDetails` — 실패 본문의 `code`/`message` **밖 필드**를 앱까지 전달.
+  백엔드가 채우고 `mapServerError` 훅이 `decode(_:)`/`string(forKey:)` 로 읽는다
 - `EndpointKey` — name+transport 식별자 (목/기록용), `MockAPIClient`, `EmptyResponse`
 - `CurrentUserIDProviding` — 본인 행 특정용 유저 id 제공 인터페이스
 
@@ -23,6 +25,10 @@
 - baseURL/헤더는 백엔드 소유 — 엔드포인트가 호스트를 모르는 것이 교체 무변경의 전제.
 - 앱 전용 에러 코드를 `APIError` 케이스로 승격하지 않는다 — 백엔드의 `mapServerError`
   훅으로 앱이 매핑한다.
+- **같은 이유로 실패 본문의 부가 필드를 `ServerErrorDetails` 의 프로퍼티로 올리지
+  않는다** — 어떤 키가 오는지는 앱·서버 계약이다. kit 은 원본만 들고 있고 해석은 앱이 한다.
+  `details` 는 `{ok:false,error}` 본문이 있는 경로(EF/REST)에서만 채워진다 —
+  RPC 는 예외로 실패를 알리므로 구조화된 값이 필요하면 EF 로 두거나 성공 응답에 싣는다.
 
 ## 여기 넣지 말 것
 

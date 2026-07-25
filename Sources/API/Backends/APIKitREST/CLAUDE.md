@@ -11,6 +11,8 @@ AuthKitREST 선례대로 APIKit 타깃(`path: Sources/API`)에 폴더로 포함�
   `method` 가 여기서 처음 실제 전송에 쓰인다.
 - 상태코드 검증 + 에러 매핑: 실패 본문이 `{ok:false,error}` envelope 이면 code 를
   `mapServerError` 훅 → 중립 `APIError` 순으로 매핑 (SupabaseAPIClient 와 대칭).
+  훅은 `(code, message, details)` 3인자로, 실패 본문 원본을 `ServerErrorDetails` 로
+  함께 넘긴다 — 2인자면 충분할 땐 `withSimpleErrorMapping(...)` 팩토리를 쓴다.
   규약 밖 본문은 `http_<status>` 코드의 중립 에러.
 
 ## 경계

@@ -13,13 +13,31 @@ import Supabase
 
 enum TestSupport {
 
+    /// `(code, message)` 훅만 쓰는 픽스처.
     static func makeAPIClient(
         mapServerError: (@Sendable (String, String) -> (any Error)?)? = nil
+    ) -> SupabaseAPIClient {
+        guard let mapServerError else {
+            return SupabaseAPIClient(
+                client: makeSupabaseClient(),
+                userIDProvider: StubUserIDProvider()
+            )
+        }
+        return SupabaseAPIClient.withSimpleErrorMapping(
+            client: makeSupabaseClient(),
+            userIDProvider: StubUserIDProvider(),
+            mapServerError: mapServerError
+        )
+    }
+
+    /// 부가 필드(`ServerErrorDetails`)까지 받는 훅 픽스처.
+    static func makeAPIClient(
+        mapServerErrorWithDetails: @escaping @Sendable (String, String, ServerErrorDetails?) -> (any Error)?
     ) -> SupabaseAPIClient {
         SupabaseAPIClient(
             client: makeSupabaseClient(),
             userIDProvider: StubUserIDProvider(),
-            mapServerError: mapServerError
+            mapServerError: mapServerErrorWithDetails
         )
     }
 

@@ -64,7 +64,7 @@ realtime 구독 → `.get`+`.plain`.
 let api: any APIClient = RESTAPIClient(
     baseURL: URL(string: "https://api.example.com/v1")!,
     adapt: { request in var r = request; r.setValue("Bearer …", forHTTPHeaderField: "Authorization"); return r },
-    mapServerError: { code, _ in code == "account_banned" ? AppServerError.accountBanned : nil }
+    mapServerError: { code, _, _ in code == "account_banned" ? AppServerError.accountBanned : nil }
 )
 ```
 
@@ -78,13 +78,28 @@ kit 은 `APIError`(invalidRequest/unauthorized/server) 중립 케이스만 소�
 앱이 자기 도메인 에러에 매핑한다 — Repository 는 도메인 에러만 다룬다.
 
 ```swift
-SupabaseAPIClient(client: supabase) { code, message in
+SupabaseAPIClient(client: supabase) { code, message, details in
     switch code {
     case "account_banned", "DR004": AppServerError.accountBanned
+    // details 로 code/message 밖의 부가 필드를 꺼낸다(EF 실패 본문에만 실린다).
+    case "callee_busy":
+        AppServerError.calleeBusy(incoming: details?.string(forKey: "incoming_negotiation_id"))
     default: nil   // nil → 중립 APIError 폴백
     }
 }
 ```
+
+부가 필드가 필요 없으면 `(code, message)` 훅만 받는 팩토리를 쓴다:
+
+```swift
+SupabaseAPIClient.withSimpleErrorMapping(client: supabase) { code, _ in
+    code == "account_banned" ? AppServerError.accountBanned : nil
+}
+```
+
+`details` 는 `{ok:false,error}` 본문이 있는 경로(EF/REST)에서만 채워진다 — RPC 는
+예외로 실패를 알리므로 항상 nil 이다. 구조화된 값이 필요한 계약은 EF 로 두거나
+성공 응답에 싣는다.
 
 ## 통합 규칙
 
