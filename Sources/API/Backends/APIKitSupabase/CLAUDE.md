@@ -10,7 +10,12 @@ supabase-swift 에 의존한다.
   - `request`: edgeFunction(`functions.invoke` + `{ok,data}` 해체) / rpc(배열-first
     디코드) / database·storage(엔드포인트 직접 실행) 라우팅. realtime 은 에러.
   - `stream`: `.realtime` 엔드포인트 전용 구독 진입점
-  - `mapServerError` 훅: 서버 (code, message) → 앱 도메인 에러. nil 폴백 시 중립 `APIError`
+  - `mapServerError` 훅: 서버 (code, message, details) → 앱 도메인 에러. nil 폴백 시 중립
+    `APIError`. `details`(`ServerErrorDetails`)는 `{ok:false,error}` 본문이 있는 **EF
+    경로에서만** 채워진다 — RPC 는 PostgrestError 예외라 구조화된 본문이 없어 항상 nil
+  - `withSimpleErrorMapping(client:userIDProvider:mapServerError:)` — details 가 필요 없을
+    때 쓰는 2인자 훅 팩토리 (init 오버로드로 두면 클로저 타입이 문맥 의존이라 `self.init`
+    이 자기 자신으로 해소돼 무한 재귀가 된다 — 그래서 이름을 달리한 팩토리다)
 - `DatabaseEndpoint`/`StorageEndpoint`/`RealtimeEndpoint` + 각 Context — 엔드포인트가
   SDK 로 직접 실행하는 경로의 프로토콜 (Context 가 SupabaseClient 노출)
 - `SupabaseTable`/`SupabaseBucket` — 테이블·버킷명 단일 출처 네임스페이스 프로토콜
