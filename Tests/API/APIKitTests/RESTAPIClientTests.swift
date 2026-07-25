@@ -32,9 +32,20 @@ struct RESTAPIClientTests {
     ) -> RESTAPIClient {
         let config = URLSessionConfiguration.ephemeral
         config.protocolClasses = [StubRESTURLProtocol.self]
-        return RESTAPIClient(
+        let session = URLSession(configuration: config)
+
+        guard let mapServerError else {
+            return RESTAPIClient(
+                baseURL: baseURL,
+                session: session,
+                defaultHeaders: defaultHeaders,
+                adapt: adapt,
+                unwrapping: unwrapping
+            )
+        }
+        return RESTAPIClient.withSimpleErrorMapping(
             baseURL: baseURL,
-            session: URLSession(configuration: config),
+            session: session,
             defaultHeaders: defaultHeaders,
             adapt: adapt,
             unwrapping: unwrapping,

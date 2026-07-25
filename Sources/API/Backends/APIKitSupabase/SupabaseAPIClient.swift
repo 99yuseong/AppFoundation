@@ -31,22 +31,47 @@ public struct SupabaseAPIClient: APIClient {
     /// 본인 행 특정용 서비스 유저 id 제공자. DB 직접 조작은 RLS 와 명시적 id 필터를 함께 쓴다.
     private let userIDProvider: any CurrentUserIDProviding
 
-    /// 서버 에러 (code, message) → 앱 도메인 에러 훅. nil 반환 시 중립 `APIError` 폴백.
-    private let mapServerError: (@Sendable (_ code: String, _ message: String) -> (any Error)?)?
+    /// 서버 에러 → 앱 도메인 에러 훅. nil 반환 시 중립 `APIError` 폴백.
+    ///
+    /// `details` 는 실패 본문에 `code`/`message` 밖의 부가 필드가 실려 온 경우에만
+    /// 채워진다(EF 경로). RPC(PostgrestError)는 구조화된 본문이 없어 항상 nil 이다.
+    private let mapServerError: (
+        @Sendable (_ code: String, _ message: String, _ details: ServerErrorDetails?) -> (any Error)?
+    )?
 
     private let logger = Logger(subsystem: "AppFoundation", category: "APIKit.Supabase")
 
     /// RPC 응답 디코딩용 공유 디코더 (설정 없는 read-only 용도라 인스턴스 공유가 안전).
     private static let decoder = JSONDecoder()
 
+    /// 부가 필드까지 받는 훅으로 조립한다.
     public init(
         client: SupabaseClient,
         userIDProvider: (any CurrentUserIDProviding)? = nil,
-        mapServerError: (@Sendable (_ code: String, _ message: String) -> (any Error)?)? = nil
+        mapServerError: (
+            @Sendable (_ code: String, _ message: String, _ details: ServerErrorDetails?) -> (any Error)?
+        )? = nil
     ) {
         self.client = client
         self.userIDProvider = userIDProvider ?? SupabaseSessionUserIDProvider(client: client)
         self.mapServerError = mapServerError
+    }
+
+    /// `(code, message)` 훅만 쓰는 호출부용 팩토리. 부가 필드가 필요 없으면 이걸 쓴다.
+    ///
+    /// **생성자 오버로드로 두지 않는다** — 클로저 인자 수만 다른 오버로드는 클로저
+    /// 리터럴의 타입이 문맥에서 정해지므로 `self.init` 이 자기 자신으로 해소돼
+    /// 무한 재귀가 된다. 이름을 달리 둔다(RESTAPIClient 와 대칭).
+    public static func withSimpleErrorMapping(
+        client: SupabaseClient,
+        userIDProvider: (any CurrentUserIDProviding)? = nil,
+        mapServerError: @escaping @Sendable (_ code: String, _ message: String) -> (any Error)?
+    ) -> SupabaseAPIClient {
+        SupabaseAPIClient(
+            client: client,
+            userIDProvider: userIDProvider,
+            mapServerError: { code, message, _ in mapServerError(code, message) }
+        )
     }
 
     // MARK: - APIClient
@@ -211,22 +236,36 @@ public struct SupabaseAPIClient: APIClient {
 
     /// FunctionsError 의 실패 본문(`{ok:false,error}`)을 도메인/중립 에러로. 규약 밖이면 nil
     /// (게이트웨이 등 — 호출부가 원본 에러를 그대로 던지도록).
+    ///
+    /// 실패 본문 원본을 `ServerErrorDetails` 로 함께 넘긴다 — `code`/`message` 밖의
+    /// 부가 필드(재시도 대상 id 등)가 매핑 경계에서 버려지지 않게 하기 위함이다.
     private func mapped(_ error: FunctionsError) -> (any Error)? {
         guard case .httpError(_, let data) = error else { return nil }
         guard let envelope = try? JSONDecoder().decode(APIErrorEnvelope.self, from: data) else { return nil }
-        return mapError(code: envelope.error.code, message: envelope.error.message)
+        return mapError(
+            code: envelope.error.code,
+            message: envelope.error.message,
+            details: ServerErrorDetails(rawBody: data)
+        )
     }
 
     /// PostgrestError(RPC RAISE)를 도메인/중립 에러로. SQLSTATE 를 code 로 우선 전달하고,
     /// code 가 없으면 message 기반 폴백(서버 공통 에러표 계약 — 예: RAISE 메시지에 의미명).
+    ///
+    /// RPC 는 `{ok,error}` 본문이 아니라 예외로 실패를 알리므로 부가 필드가 없다.
+    /// 구조화된 값이 필요한 계약은 EF 로 두거나 성공 응답에 실어야 한다.
     private func mapped(_ error: PostgrestError) -> any Error {
         mapError(code: error.code ?? error.message, message: error.message)
     }
 
     /// 훅 우선 → 중립 `APIError` 폴백. 앱은 훅으로 자기 도메인 에러(제재/기기이전 등)를
     /// 만들어 Repository 가 도메인 에러만 다루게 한다. (internal — 단위 테스트 대상)
-    func mapError(code: String, message: String) -> any Error {
-        if let custom = mapServerError?(code, message) {
+    func mapError(
+        code: String,
+        message: String,
+        details: ServerErrorDetails? = nil
+    ) -> any Error {
+        if let custom = mapServerError?(code, message, details) {
             return custom
         }
         return APIError(code: code, message: message)

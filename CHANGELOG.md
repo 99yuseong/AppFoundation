@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.6.0 (2026-07-25)
+
+### 변경(호환 깨짐) — `mapServerError` 훅이 `(code, message, details)` 로
+- 훅 시그니처가 늘었다. 2인자 훅을 넘기던 호출부는 컴파일이 깨지므로 아래 둘 중
+  하나로 옮긴다: ① 3인자로 고치기 ② `withSimpleErrorMapping(...)` 팩토리 쓰기.
+  0.x 대라 minor 를 올린다(0.x 의 minor = breaking).
+
+### 추가 — 실패 응답 부가 필드 전달 (`ServerErrorDetails`)
+- `APIKit`: `ServerErrorDetails` 신설 — 실패 본문에서 `code`/`message` **밖의 필드**를
+  앱까지 전달한다. 서버가 error 객체에 재시도 대상 id 같은 값을 함께 싣는 계약을
+  쓸 때, 그 값이 매핑 경계에서 버려지던 것을 막는다.
+  `decode(_:)`(앱 타입으로) / `string(forKey:)`(문자열 지름길) 두 진입.
+  **kit 은 내용을 해석하지 않는다** — 어떤 키가 오는지는 앱·서버 계약이므로
+  `mapServerError` 훅이 꺼내 쓴다("앱 전용 코드를 `APIError` 케이스로 승격하지
+  않는다"와 같은 규칙).
+- `mapServerError` 훅 시그니처가 `(code, message, details)` 로 늘었다.
+  `details` 는 EF/REST 의 `{ok:false,error}` 본문에서만 채워지고,
+  **RPC(PostgrestError)는 구조화된 본문이 없어 항상 nil** 이다.
+- `(code, message)` 훅만 쓰던 호출부는 `SupabaseAPIClient.withSimpleErrorMapping(...)` /
+  `RESTAPIClient.withSimpleErrorMapping(...)` 팩토리로 옮긴다.
+  생성자 오버로드로 두지 않은 이유는 클로저 인자 수만 다른 오버로드가
+  `self.init` 을 자기 자신으로 해소해 **무한 재귀**가 되기 때문이다.
+
 ## 0.5.0 (2026-07-23)
 
 ### 추가 — 캐시 · REST 백엔드 · Image 도메인
