@@ -8,6 +8,7 @@
 import Foundation
 import Testing
 import APIKit
+import Supabase
 @testable import APIKitSupabase
 
 @Suite("SupabaseAPIClient 에러 매핑")
@@ -38,6 +39,29 @@ struct SupabaseErrorMappingTests {
             code == "account_banned" ? DomainError.accountBanned : nil
         }
         #expect(api.mapError(code: "other", message: "m") as? APIError == .server(code: "other", message: "m"))
+    }
+
+    // MARK: - PostgrestError(RPC RAISE) — P0001 정규화
+
+    @Test("P0001 — SQLSTATE 대신 MESSAGE 의 의미명이 code 로 승격된다")
+    func postgrestP0001PromotesMessageToCode() {
+        let api = TestSupport.makeAPIClient { code, _ in
+            code == "callee_busy" ? DomainError.accountBanned : nil
+        }
+        let error = PostgrestError(code: "P0001", message: "callee_busy")
+        #expect(api.mapped(error) as? DomainError == .accountBanned)
+    }
+
+    @Test("커스텀 SQLSTATE(DR004) — code 그대로 전달된다")
+    func postgrestCustomSQLSTATEPassesThrough() {
+        let api = TestSupport.makeAPIClient()
+        #expect(api.mapped(PostgrestError(code: "DR004", message: "banned")) as? APIError == .server(code: "DR004", message: "banned"))
+    }
+
+    @Test("code 없음 — message 로 폴백한다(기존 동작 유지)")
+    func postgrestNilCodeFallsBackToMessage() {
+        let api = TestSupport.makeAPIClient()
+        #expect(api.mapped(PostgrestError(code: nil, message: "invalid_state")) as? APIError == .server(code: "invalid_state", message: "invalid_state"))
     }
 
     // MARK: - 부가 필드 전달

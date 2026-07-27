@@ -249,13 +249,19 @@ public struct SupabaseAPIClient: APIClient {
         )
     }
 
-    /// PostgrestError(RPC RAISE)를 도메인/중립 에러로. SQLSTATE 를 code 로 우선 전달하고,
-    /// code 가 없으면 message 기반 폴백(서버 공통 에러표 계약 — 예: RAISE 메시지에 의미명).
+    /// PostgrestError(RPC RAISE)를 도메인/중립 에러로. P0001(사용자 정의 RAISE)은
+    /// SQLSTATE 자체가 의미를 갖지 않으므로 MESSAGE 의 의미명을 code 로 승격한다.
+    /// 커스텀 SQLSTATE(예: DR004)는 그 자체가 의미 토큰이라 그대로 code 로 쓴다.
+    /// code 가 없으면 message 기반 폴백(서버 공통 에러표 계약).
     ///
     /// RPC 는 `{ok,error}` 본문이 아니라 예외로 실패를 알리므로 부가 필드가 없다.
     /// 구조화된 값이 필요한 계약은 EF 로 두거나 성공 응답에 실어야 한다.
-    private func mapped(_ error: PostgrestError) -> any Error {
-        mapError(code: error.code ?? error.message, message: error.message)
+    /// (internal — 단위 테스트 대상)
+    func mapped(_ error: PostgrestError) -> any Error {
+        mapError(
+            code: error.code == "P0001" ? error.message : (error.code ?? error.message),
+            message: error.message
+        )
     }
 
     /// 훅 우선 → 중립 `APIError` 폴백. 앱은 훅으로 자기 도메인 에러(제재/기기이전 등)를
