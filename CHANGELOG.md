@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.7.0 (2026-08-04)
+
+### 추가 — Experiment 도메인 (TumTumRead 에서 이식)
+- `ExperimentKit` (신규 도메인 `Sources/Experiment/`): 실험(A/B)·원격 설정 계약 계층,
+  SDK 무의존
+  - `ExperimentClient` — `fetchAndActivate(policy:)` / `value(for:)` 백엔드 계약
+  - `ExperimentKey<Value>` — 원격 문자열 → 앱 타입 변환 키. 변환 실패·값 없음은
+    defaultValue 폴백. `RawRepresentable(String)` enum + String/Bool/Int/Double 기본 제공
+  - `InMemoryExperimentClient` — Preview·단위 테스트용 구현체
+- `ExperimentKitFirebase`: Firebase Remote Config 어댑터 (`FirebaseRemoteConfig` 소유
+  → 별도 product). Firebase A/B Testing 배정값 제공
+- 외부 의존 추가: `firebase-ios-sdk` from 12.1.0 (하한 = TumTumRead 현재 pin)
+
 ## 0.6.0 (2026-07-25)
 
 ### 변경(호환 깨짐) — `mapServerError` 훅이 `(code, message, details)` 로
