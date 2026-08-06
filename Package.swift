@@ -193,5 +193,10 @@ let package = Package(
             dependencies: ["ExperimentKit"],
             path: "Tests/Experiment/ExperimentKitTests"
         ),
+        .testTarget(
+            name: "ExperimentKitFirebaseTests",
+            dependencies: ["ExperimentKitFirebase"],
+            path: "Tests/Experiment/ExperimentKitFirebaseTests"
+        ),
     ]
 )

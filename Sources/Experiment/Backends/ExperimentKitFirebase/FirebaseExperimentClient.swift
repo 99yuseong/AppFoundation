@@ -20,15 +20,7 @@ public final class FirebaseExperimentClient: ExperimentClient, @unchecked Sendab
     public func fetchAndActivate(
         policy: ExperimentFetchPolicy
     ) async throws -> ExperimentFetchResult {
-        let expirationDuration: TimeInterval
-        switch policy {
-        case .cached:
-            expirationDuration = TimeInterval.greatestFiniteMagnitude
-        case .expiration(let duration):
-            expirationDuration = max(0, duration)
-        case .fresh:
-            expirationDuration = 0
-        }
+        let expirationDuration = FetchPolicyMapping.expirationDuration(for: policy)
 
         let status = try await remoteConfig.fetch(withExpirationDuration: expirationDuration)
         guard status == .success else {
@@ -49,5 +41,19 @@ public final class FirebaseExperimentClient: ExperimentClient, @unchecked Sendab
             return key.defaultValue
         }
         return key.decode(configValue.stringValue)
+    }
+}
+
+/// policy → Firebase fetch expiration 변환. Firebase 타입 무의존 순수 로직 — 테스트 대상.
+enum FetchPolicyMapping {
+    static func expirationDuration(for policy: ExperimentFetchPolicy) -> TimeInterval {
+        switch policy {
+        case .cached:
+            TimeInterval.greatestFiniteMagnitude
+        case .expiration(let duration):
+            max(0, duration)
+        case .fresh:
+            0
+        }
     }
 }
