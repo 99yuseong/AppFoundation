@@ -12,6 +12,8 @@ import PackageDescription
 //   API/Backends/        APIKitSupabase (EF/RPC/DB/Storage/Realtime 실행),
 //                        APIKitREST (URLSession 실행 — APIKit 타깃에 포함)
 //   Image/Core/          ImageKit (다운샘플링·이미지 캐시 파이프라인·RemoteImage 뷰 쌍)
+//   Experiment/Core/     ExperimentKit (실험·원격 설정 계약 — ExperimentClient·ExperimentKey)
+//   Experiment/Backends/ ExperimentKitFirebase (Firebase Remote Config 어댑터)
 //   (추후)               Ads/AdsKit, Purchase/PurchaseKit, Analytics/AnalyticsKit, Push/…
 //
 // 타깃 분리 기준 = 외부 SDK 의존 (계층이 아니다).
@@ -36,12 +38,16 @@ let package = Package(
         .library(name: "APIKit",          targets: ["APIKit"]),
         .library(name: "APIKitSupabase",  targets: ["APIKitSupabase"]),
         .library(name: "ImageKit",        targets: ["ImageKit"]),
+        .library(name: "ExperimentKit",   targets: ["ExperimentKit"]),
+        .library(name: "ExperimentKitFirebase", targets: ["ExperimentKitFirebase"]),
     ],
     dependencies: [
         // 하한 = TumTumRead 현재 pin(2.29.3). Doran(2.51.0)과 range 호환.
         .package(url: "https://github.com/supabase/supabase-swift.git", from: "2.29.3"),
         .package(url: "https://github.com/google/GoogleSignIn-iOS", from: "9.2.0"),
         .package(url: "https://github.com/kakao/kakao-ios-sdk", from: "2.28.0"),
+        // 하한 = TumTumRead 현재 pin(12.1.0).
+        .package(url: "https://github.com/firebase/firebase-ios-sdk", from: "12.1.0"),
     ],
     targets: [
         .target(
@@ -135,6 +141,23 @@ let package = Package(
             exclude: ["CLAUDE.md"],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
+        // Backends 에 SDK-free 계층이 없어 APIKit 처럼 path 를 도메인 루트로 올리지 않는다.
+        .target(
+            name: "ExperimentKit",
+            path: "Sources/Experiment/Core/ExperimentKit",
+            exclude: ["CLAUDE.md"],
+            swiftSettings: [.swiftLanguageMode(.v6)]
+        ),
+        .target(
+            name: "ExperimentKitFirebase",
+            dependencies: [
+                "ExperimentKit",
+                .product(name: "FirebaseRemoteConfig", package: "firebase-ios-sdk"),
+            ],
+            path: "Sources/Experiment/Backends/ExperimentKitFirebase",
+            exclude: ["CLAUDE.md"],
+            swiftSettings: [.swiftLanguageMode(.v6)]
+        ),
         .testTarget(
             name: "CoreKitTests",
             dependencies: ["CoreKit"],
@@ -164,6 +187,16 @@ let package = Package(
             name: "ImageKitTests",
             dependencies: ["ImageKit"],
             path: "Tests/Image/ImageKitTests"
+        ),
+        .testTarget(
+            name: "ExperimentKitTests",
+            dependencies: ["ExperimentKit"],
+            path: "Tests/Experiment/ExperimentKitTests"
+        ),
+        .testTarget(
+            name: "ExperimentKitFirebaseTests",
+            dependencies: ["ExperimentKitFirebase"],
+            path: "Tests/Experiment/ExperimentKitFirebaseTests"
         ),
     ]
 )

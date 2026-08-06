@@ -19,8 +19,11 @@ Sources/{Domain}/{Layer}/{Target}
 │   └── Backends/
 │       ├── APIKitSupabase          # EF/RPC/DB/Storage/Realtime 실행 (supabase-swift 소유)
 │       └── APIKitREST              # URLSession 실행 — 의존성 zero → APIKit 타깃에 포함
-└── Image/
-    └── Core/ImageKit               # 다운샘플링·이미지 캐시 파이프라인·RemoteImage 뷰 쌍 (SDK 무의존)
+├── Image/
+│   └── Core/ImageKit               # 다운샘플링·이미지 캐시 파이프라인·RemoteImage 뷰 쌍 (SDK 무의존)
+└── Experiment/
+    ├── Core/ExperimentKit          # 실험·원격 설정 계약 — ExperimentClient·ExperimentKey (SDK 무의존)
+    └── Backends/ExperimentKitFirebase  # Firebase Remote Config 어댑터 (firebase-ios-sdk 소유)
 ```
 
 - **폴더 = 계층, 타깃 = SDK 경계.** 이 둘은 1:1 이 아니다. 계층 구분은 디렉토리로

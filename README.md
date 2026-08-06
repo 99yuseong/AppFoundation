@@ -21,6 +21,8 @@ Auth 는 3계층 — **Core**(타입·오케스트레이터·버튼) / **Provide
 | `APIKit` | Core + Backend | 서버 API 계약 계층 — `APIClient`(`request`/`stream`), `Endpoint` 선언 메타데이터, 중립 `APIError`·envelope, `MockAPIClient` + **`RESTAPIClient`**(URLSession 백엔드, `.http` transport) | 없음 | ✅ |
 | `APIKitSupabase` | Backend | `SupabaseAPIClient` — EF/RPC/DB/Storage/Realtime 라우팅, `mapServerError` 훅 | supabase-swift | ✅ |
 | `ImageKit` | Core | 원격 이미지 파이프라인 — `ImageLoader`(메모리/디스크 캐시·dedup·재시도), `ImageDownsampler`, `RemoteImage`(SwiftUI)/`RemoteUIImage`(UIKit) | 없음 | ✅ |
+| `ExperimentKit` | Core | 실험(A/B)·원격 설정 계약 계층 — `ExperimentClient`, `ExperimentKey<Value>`(문자열 → 타입 변환, 실패 시 defaultValue 폴백), `InMemoryExperimentClient` | 없음 | ✅ |
+| `ExperimentKitFirebase` | Backend | `FirebaseExperimentClient` — Firebase A/B Testing 이 Remote Config 에 배정한 값 제공 | firebase-ios-sdk | ✅ |
 | `PurchaseKit` / `AdsKit` / `AnalyticsKit` / Push | — | — | — | 예정 |
 
 ## 빠른 시작 (Auth)
