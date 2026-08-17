@@ -7,7 +7,8 @@
 //  주입하면 된다.
 //
 
-import Foundation
+import SwiftUI
+import Combine
 import AdKit
 import AdKitAdMob
 
