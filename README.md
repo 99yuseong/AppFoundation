@@ -23,7 +23,9 @@ Auth 는 3계층 — **Core**(타입·오케스트레이터·버튼) / **Provide
 | `ImageKit` | Core | 원격 이미지 파이프라인 — `ImageLoader`(메모리/디스크 캐시·dedup·재시도), `ImageDownsampler`, `RemoteImage`(SwiftUI)/`RemoteUIImage`(UIKit) | 없음 | ✅ |
 | `ExperimentKit` | Core | 실험(A/B)·원격 설정 계약 계층 — `ExperimentClient`, `ExperimentKey<Value>`(문자열 → 타입 변환, 실패 시 defaultValue 폴백), `InMemoryExperimentClient` | 없음 | ✅ |
 | `ExperimentKitFirebase` | Backend | `FirebaseExperimentClient` — Firebase A/B Testing 이 Remote Config 에 배정한 값 제공 | firebase-ios-sdk | ✅ |
-| `PurchaseKit` / `AdsKit` / `AnalyticsKit` / Push | — | — | — | 예정 |
+| `AdKit` | Core | 광고 계약 계층 — `InterstitialAdControlling`/`RewardedAdControlling`, `NativeAdLayoutUIView`(앱 커스텀 레이아웃 베이스)·`NativeAdContent`, `AdConditionChecker`(구독 게이트), `ATTAuthorization`, Mock | 없음 (AppTrackingTransparency) | ✅ |
+| `AdKitAdMob` | Backend | AdMob 실행 — placement-generic 로더(단발/캐시/상주/로테이션 네이티브, 전면, 보상형+SSV), `NativeAdHostUIView`/`NativeAdHostView`, **전면형 네이티브 기본 템플릿**(UIKit/SwiftUI, `set~` 빌더) | GoogleMobileAds | ✅ |
+| `PurchaseKit` / `AnalyticsKit` / Push | — | — | — | 예정 |
 
 ## 빠른 시작 (Auth)
 

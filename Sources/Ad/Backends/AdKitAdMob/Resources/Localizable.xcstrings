@@ -1,0 +1,86 @@
+{
+  "sourceLanguage" : "ko",
+  "strings" : {
+    "Ad.Interstitial.Close" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "닫기"
+          }
+        }
+      }
+    },
+    "Ad.Interstitial.Fallback.cta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Learn More"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "자세히 보기"
+          }
+        }
+      }
+    },
+    "Ad.Interstitial.Fallback.emptyBody" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check out this interesting content."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "흥미로운 콘텐츠를 확인해 보세요."
+          }
+        }
+      }
+    },
+    "Ad.Interstitial.Fallback.headline" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sponsored Content"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "스폰서 콘텐츠"
+          }
+        }
+      }
+    },
+    "Ad.Interstitial.Fallback.noFillBody" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't load the ad. Please try again later."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "광고를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.1"
+}

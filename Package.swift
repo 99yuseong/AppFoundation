@@ -14,7 +14,9 @@ import PackageDescription
 //   Image/Core/          ImageKit (다운샘플링·이미지 캐시 파이프라인·RemoteImage 뷰 쌍)
 //   Experiment/Core/     ExperimentKit (실험·원격 설정 계약 — ExperimentClient·ExperimentKey)
 //   Experiment/Backends/ ExperimentKitFirebase (Firebase Remote Config 어댑터)
-//   (추후)               Ads/AdsKit, Purchase/PurchaseKit, Analytics/AnalyticsKit, Push/…
+//   Ad/Core/             AdKit (광고 계약 — 전면·보상형 계약, 네이티브 레이아웃 베이스, ATT)
+//   Ad/Backends/         AdKitAdMob (Google Mobile Ads 실행 + 전면형 네이티브 기본 템플릿)
+//   (추후)               Purchase/PurchaseKit, Analytics/AnalyticsKit, Push/…
 //
 // 타깃 분리 기준 = 외부 SDK 의존 (계층이 아니다).
 // 계층은 디렉토리로 표현하고, 타깃은 SDK 경계에서만 쪼갠다 — 타깃이 늘수록
@@ -40,6 +42,8 @@ let package = Package(
         .library(name: "ImageKit",        targets: ["ImageKit"]),
         .library(name: "ExperimentKit",   targets: ["ExperimentKit"]),
         .library(name: "ExperimentKitFirebase", targets: ["ExperimentKitFirebase"]),
+        .library(name: "AdKit",           targets: ["AdKit"]),
+        .library(name: "AdKitAdMob",      targets: ["AdKitAdMob"]),
     ],
     dependencies: [
         // 하한 = TumTumRead 현재 pin(2.29.3). Doran(2.51.0)과 range 호환.
@@ -48,6 +52,8 @@ let package = Package(
         .package(url: "https://github.com/kakao/kakao-ios-sdk", from: "2.28.0"),
         // 하한 = TumTumRead 현재 pin(12.1.0).
         .package(url: "https://github.com/firebase/firebase-ios-sdk", from: "12.1.0"),
+        // 하한 = Doran 현재 pin(13.5.0). TumTumRead 는 채택 시점에 12→13 마이그레이션.
+        .package(url: "https://github.com/googleads/swift-package-manager-google-mobile-ads.git", from: "13.5.0"),
     ],
     targets: [
         .target(
@@ -158,6 +164,26 @@ let package = Package(
             exclude: ["CLAUDE.md"],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
+        // Backends 에 SDK-free 계층이 없어 path 를 도메인 루트로 올리지 않는다 (ExperimentKit 과 동일).
+        .target(
+            name: "AdKit",
+            path: "Sources/Ad/Core/AdKit",
+            exclude: ["CLAUDE.md"],
+            swiftSettings: [.swiftLanguageMode(.v6)]
+        ),
+        .target(
+            name: "AdKitAdMob",
+            dependencies: [
+                "AdKit",
+                .product(name: "GoogleMobileAds", package: "swift-package-manager-google-mobile-ads"),
+            ],
+            path: "Sources/Ad/Backends/AdKitAdMob",
+            exclude: ["CLAUDE.md"],
+            resources: [.process("Resources")],
+            // GMA delegate 가 Sendable 미표기 — v6 strict 에서 소음이 커 v5 모드로 두고
+            // 각 로더에 @MainActor 를 명시한다 (AuthKitKakao 와 같은 선례).
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
         .testTarget(
             name: "CoreKitTests",
             dependencies: ["CoreKit"],
@@ -197,6 +223,11 @@ let package = Package(
             name: "ExperimentKitFirebaseTests",
             dependencies: ["ExperimentKitFirebase"],
             path: "Tests/Experiment/ExperimentKitFirebaseTests"
+        ),
+        .testTarget(
+            name: "AdKitTests",
+            dependencies: ["AdKit"],
+            path: "Tests/Ad/AdKitTests"
         ),
     ]
 )
