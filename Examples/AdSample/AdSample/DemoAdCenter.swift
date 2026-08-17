@@ -15,9 +15,11 @@ import AdKitAdMob
 @MainActor
 final class DemoAdCenter: ObservableObject {
 
-    /// 전면형 네이티브 (기본 템플릿 데모) — 영상 크리에이티브가 나오는 테스트 unit.
+    /// 전면형 네이티브 (기본 템플릿 데모). video 테스트 unit 은 no-fill 이 잦아
+    /// 일반 네이티브 unit 을 쓴다 — 영상 크리에이티브를 보려면
+    /// `DemoAdUnitID.nativeAdvancedVideo` 로 바꾼다.
     let nativeInterstitial = AdMobCachedNativeAdLoader(
-        adUnitId: DemoAdUnitID.nativeAdvancedVideo
+        adUnitId: DemoAdUnitID.nativeAdvanced
     )
 
     /// 상주 네이티브 배너 (커스텀 레이아웃 데모).

@@ -6,7 +6,8 @@ AppFoundation **AdKit · AdKitAdMob** 데모 앱. Google 공식 **테스트 App 
 데모 내용:
 
 - **전면형 네이티브 (기본 템플릿)** — `InterstitialNativeAdTemplateUIView` +
-  카운트다운 닫기 + promo CTA. SwiftUI(`fullScreenCover`)와 UIKit(`present`) 양쪽.
+  카운트다운 닫기 + 하단 커스텀 뷰 슬롯(`setBottomAccessoryView`, 기본은 닫기만).
+  SwiftUI(`fullScreenCover`)와 UIKit(`present`) 양쪽.
 - **상주 네이티브 배너 (커스텀 레이아웃)** — `NativeAdLayoutUIView` 를 직접 상속한
   `DemoBannerAdLayoutView` 를 `NativeAdHostView` 에 주입.
 - **SDK 전면 광고** — `AdMobInterstitialAdLoader` preload → present.
