@@ -58,7 +58,7 @@ await loader.loadAd()   // 노출 전에 미리
 // UIKit
 let vc = NativeAdInterstitialViewController(adLoader: loader)
     .setCloseButtonUnlockInterval(5)
-    .setPromotionButtonTitle("구독하고 광고 없이 이용하기")  // 선택
+    .setBottomAccessoryView(mySubscribeButton)  // 선택 — 닫기 버튼 위 커스텀 뷰. 없으면 닫기만
 presenter.present(vc, animated: true)   // presenter 가 없으면 TopMostPresenter.topViewController()
 
 // SwiftUI

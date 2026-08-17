@@ -23,13 +23,11 @@ public struct NativeAdInterstitialView: UIViewControllerRepresentable {
 
     private let adLoader: AdMobCachedNativeAdLoader
     private var closeButtonUnlockInterval: TimeInterval = 5
-    private var promotionButtonTitle: String?
     private var showsDefaultContentWhenAdMissing = false
     private var makeContentView: (@MainActor () -> NativeAdLayoutUIView)?
+    private var makeBottomAccessoryView: (@MainActor () -> UIView)?
     private var onClose: (() -> Void)?
     private var onAdNotReady: (() -> Void)?
-    private var onPromotionTapped: (() -> Void)?
-    private var onPromotionImpression: (() -> Void)?
 
     public init(adLoader: AdMobCachedNativeAdLoader) {
         self.adLoader = adLoader
@@ -44,10 +42,11 @@ public struct NativeAdInterstitialView: UIViewControllerRepresentable {
         return copy
     }
 
-    /// 전환 유도(로그인/구독) 버튼 타이틀. nil = 버튼 없음.
-    public func setPromotionButtonTitle(_ title: String?) -> Self {
+    /// 닫기 버튼 위에 배치할 커스텀 뷰 팩토리 (구독 유도 CTA 등). 미설정 =
+    /// 닫기 버튼만. 탭 액션 등 동작은 뷰를 만든 앱이 소유한다.
+    public func setBottomAccessoryView(_ make: @escaping @MainActor () -> UIView) -> Self {
         var copy = self
-        copy.promotionButtonTitle = title
+        copy.makeBottomAccessoryView = make
         return copy
     }
 
@@ -79,34 +78,22 @@ public struct NativeAdInterstitialView: UIViewControllerRepresentable {
         return copy
     }
 
-    public func setOnPromotionTapped(_ action: @escaping () -> Void) -> Self {
-        var copy = self
-        copy.onPromotionTapped = action
-        return copy
-    }
-
-    public func setOnPromotionImpression(_ action: @escaping () -> Void) -> Self {
-        var copy = self
-        copy.onPromotionImpression = action
-        return copy
-    }
-
     // MARK: - UIViewControllerRepresentable
 
     public func makeUIViewController(context: Context) -> NativeAdInterstitialViewController {
         let controller = NativeAdInterstitialViewController(adLoader: adLoader)
             .setCloseButtonUnlockInterval(closeButtonUnlockInterval)
-            .setPromotionButtonTitle(promotionButtonTitle)
             .setShowsDefaultContentWhenAdMissing(showsDefaultContentWhenAdMissing)
         if let makeContentView {
             controller.setAdContentView(makeContentView())
+        }
+        if let makeBottomAccessoryView {
+            controller.setBottomAccessoryView(makeBottomAccessoryView())
         }
         // dismiss 는 앱 상태가 소유한다 — VC 는 콜백만 쏜다.
         controller.dismissesOnCloseTap = false
         controller.onCloseButtonTapped = onClose
         controller.onAdNotReady = onAdNotReady
-        controller.onPromotionButtonTapped = onPromotionTapped
-        controller.onPromotionButtonImpression = onPromotionImpression
         return controller
     }
 

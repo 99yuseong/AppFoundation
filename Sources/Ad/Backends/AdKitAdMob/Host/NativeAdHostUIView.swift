@@ -35,7 +35,10 @@ public final class NativeAdHostUIView: NativeAdView {
         self.content = contentView
         super.init(frame: .zero)
 
-        translatesAutoresizingMaskIntoConstraints = false
+        // 자신의 translatesAutoresizingMaskIntoConstraints 는 건드리지 않는다 —
+        // SwiftUI(UIViewRepresentable)는 frame 으로 직접 사이징하므로 끄면
+        // 내부 제약의 압축 크기로 좌상단에 붙는다. UIKit 에서 제약으로 배치할
+        // 때는 배치하는 쪽이 끈다 (표준 관례).
         content.translatesAutoresizingMaskIntoConstraints = false
         addSubview(content)
 
