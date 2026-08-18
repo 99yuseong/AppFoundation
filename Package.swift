@@ -14,7 +14,7 @@ import PackageDescription
 //   Image/Core/          ImageKit (다운샘플링·이미지 캐시 파이프라인·RemoteImage 뷰 쌍)
 //   Experiment/Core/     ExperimentKit (실험·원격 설정 계약 — ExperimentClient·ExperimentKey)
 //   Experiment/Backends/ ExperimentKitFirebase (Firebase Remote Config 어댑터)
-//   Ad/Core/             AdKit (광고 계약 — 전면·보상형 계약, 네이티브 레이아웃 베이스, ATT)
+//   Ad/Core/             AdKit (광고 계약 — 로더 계약(전면·보상형·네이티브), 레이아웃 베이스, ATT)
 //   Ad/Backends/         AdKitAdMob (Google Mobile Ads 실행 + 전면형 네이티브 기본 템플릿)
 //   (추후)               Purchase/PurchaseKit, Analytics/AnalyticsKit, Push/…
 //
@@ -168,7 +168,7 @@ let package = Package(
         .target(
             name: "AdKit",
             path: "Sources/Ad/Core/AdKit",
-            exclude: ["CLAUDE.md"],
+            exclude: ["CLAUDE.md", "AGENTS.md"],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
         .target(
@@ -178,7 +178,7 @@ let package = Package(
                 .product(name: "GoogleMobileAds", package: "swift-package-manager-google-mobile-ads"),
             ],
             path: "Sources/Ad/Backends/AdKitAdMob",
-            exclude: ["CLAUDE.md"],
+            exclude: ["CLAUDE.md", "AGENTS.md"],
             resources: [.process("Resources")],
             // GMA delegate 가 Sendable 미표기 — v6 strict 에서 소음이 커 v5 모드로 두고
             // 각 로더에 @MainActor 를 명시한다 (AuthKitKakao 와 같은 선례).

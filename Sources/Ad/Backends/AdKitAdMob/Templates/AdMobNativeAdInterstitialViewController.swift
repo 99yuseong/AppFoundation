@@ -1,48 +1,48 @@
 //
-//  NativeAdInterstitialViewController.swift
+//  AdMobNativeAdInterstitialViewController.swift
 //  AppFoundation / AdKitAdMob
 //
 //  네이티브 광고를 전면 광고 형태로 표시하는 뷰컨트롤러.
 //
 //  검은 배경 위에 광고 카드(주입된 `NativeAdLayoutUIView`, 기본은
-//  `InterstitialNativeAdTemplateUIView`)를 중앙 배치하고, 카드 아래에 카운트다운
+//  `AdMobNativeAdInterstitialTemplateUIView`)를 중앙 배치하고, 카드 아래에 카운트다운
 //  닫기 버튼을 둔다. 닫기 버튼 위 하단 영역은 커스텀 뷰 슬롯이다 — 앱이
 //  구독 유도 CTA 등 자기 뷰를 주입하고, 기본은 닫기 버튼만 표시한다.
-//  표시 시점에 `AdMobCachedNativeAdLoader` 의 캐시를 1회 소비한다 — 미리
+//  표시 시점에 `AdMobNativeAdCachedLoader` 의 캐시를 1회 소비한다 — 미리
 //  `loadAd()` 를 호출해 두어야 한다.
 //
 //  설정은 present 전에 `set~` 빌더로 조정한다.
 //
 //  ```swift
-//  let vc = NativeAdInterstitialViewController(adLoader: loader)
+//  let vc = AdMobNativeAdInterstitialViewController(adLoader: loader)
 //      .setCloseButtonUnlockInterval(5)
 //      .setBottomAccessoryView(mySubscribeButton)   // 선택 — 없으면 닫기만
-//  vc.onCloseButtonTapped = { ... }
+//      .setOnClose { ... }
 //  presenter.present(vc, animated: true)
 //  ```
 //
 
 import UIKit
+import GoogleMobileAds
 import AdKit
 
-public final class NativeAdInterstitialViewController: UIViewController {
+public final class AdMobNativeAdInterstitialViewController: UIViewController {
 
     // MARK: - Callbacks
 
-    public var onCloseButtonTapped: (() -> Void)?
-    /// 표시 시점에 로드된 광고가 없을 때 호출된다 (기본 콘텐츠 표시 모드가 아니면).
-    public var onAdNotReady: (() -> Void)?
+    private var onClose: (() -> Void)?
+    private var onAdNotReady: (() -> Void)?
 
     // MARK: - Properties
 
-    private let adLoader: AdMobCachedNativeAdLoader
+    private let adLoader: any NativeAdCachedLoading<NativeAd>
     private var closeButtonUnlockInterval: TimeInterval = 5
     /// 닫기 버튼 위에 배치할 커스텀 뷰 (구독 유도 CTA 등). nil = 닫기 버튼만.
     /// 뷰의 동작(탭 액션·비활성화 등)은 전적으로 앱이 소유한다.
     private var bottomAccessoryView: UIView?
     /// true 면 광고 미준비 시 `onAdNotReady` 대신 기본 콘텐츠를 표시한다 (UI 테스트용)
     private var showsDefaultContentWhenAdMissing = false
-    private var adContentView: NativeAdLayoutUIView = InterstitialNativeAdTemplateUIView()
+    private var adContentView: NativeAdLayoutUIView = AdMobNativeAdInterstitialTemplateUIView()
     /// SwiftUI 래퍼는 false 로 바꿔 dismiss 를 앱 상태(binding)가 소유하게 한다.
     var dismissesOnCloseTap = true
 
@@ -50,9 +50,9 @@ public final class NativeAdInterstitialViewController: UIViewController {
 
     // MARK: - UI Components
 
-    /// 광고 카드. 주입받은 레이아웃을 `NativeAdHostUIView` 로 감싸 트래킹을 연결한다.
+    /// 광고 카드. 주입받은 레이아웃을 `AdMobNativeAdHostUIView` 로 감싸 트래킹을 연결한다.
     /// 크기는 카드 콘텐츠 크기에 맞춰지며, 화면 중앙에 배치된다. (viewDidLoad 에서 생성)
-    private var interstitialView: NativeAdHostUIView!
+    private var interstitialView: AdMobNativeAdHostUIView!
 
     /// 닫기 버튼(카운트다운 포함). 카드 바깥, 카드와 화면 바닥 사이 중앙에 배치된다.
     private lazy var closeButton: AdCloseCountdownButton = {
@@ -76,7 +76,9 @@ public final class NativeAdInterstitialViewController: UIViewController {
 
     // MARK: - Initialization
 
-    public init(adLoader: AdMobCachedNativeAdLoader) {
+    /// - Parameter adLoader: cache-one 네이티브 로더 (계약 주입 — 앱 자체 로더도
+    ///   `NativeAdCachedLoading` 채택으로 주입 가능. 기본 구현은 `AdMobNativeAdCachedLoader`).
+    public init(adLoader: any NativeAdCachedLoading<NativeAd>) {
         self.adLoader = adLoader
         super.init(nibName: nil, bundle: nil)
         modalPresentationStyle = .fullScreen
@@ -103,7 +105,7 @@ public final class NativeAdInterstitialViewController: UIViewController {
         return self
     }
 
-    /// 광고 카드 디자인. 기본은 `InterstitialNativeAdTemplateUIView`.
+    /// 광고 카드 디자인. 기본은 `AdMobNativeAdInterstitialTemplateUIView`.
     @discardableResult
     public func setAdContentView(_ contentView: NativeAdLayoutUIView) -> Self {
         adContentView = contentView
@@ -117,11 +119,25 @@ public final class NativeAdInterstitialViewController: UIViewController {
         return self
     }
 
+    /// 닫기 버튼 탭 콜백.
+    @discardableResult
+    public func setOnClose(_ action: (() -> Void)?) -> Self {
+        onClose = action
+        return self
+    }
+
+    /// 표시 시점에 로드된 광고가 없을 때 콜백 (기본 콘텐츠 표시 모드가 아니면).
+    @discardableResult
+    public func setOnAdNotReady(_ action: (() -> Void)?) -> Self {
+        onAdNotReady = action
+        return self
+    }
+
     // MARK: - Lifecycle
 
     public override func viewDidLoad() {
         super.viewDidLoad()
-        interstitialView = NativeAdHostUIView(contentView: adContentView)
+        interstitialView = AdMobNativeAdHostUIView(contentView: adContentView)
         configureUI()
 
         guard let nativeAd = adLoader.consumeAd() else {
@@ -189,10 +205,10 @@ public final class NativeAdInterstitialViewController: UIViewController {
     private func didCloseButtonTapped() {
         if dismissesOnCloseTap {
             dismiss(animated: true) { [weak self] in
-                self?.onCloseButtonTapped?()
+                self?.onClose?()
             }
         } else {
-            onCloseButtonTapped?()
+            onClose?()
         }
     }
 

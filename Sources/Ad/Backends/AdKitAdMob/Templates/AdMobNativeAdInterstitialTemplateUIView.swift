@@ -1,12 +1,12 @@
 //
-//  InterstitialNativeAdTemplateUIView.swift
+//  AdMobNativeAdInterstitialTemplateUIView.swift
 //  AppFoundation / AdKitAdMob
 //
 //  전면형 네이티브 광고의 "카드" 기본 템플릿 (TumTumRead 레이아웃 이식).
 //
 //  이 뷰 자체가 곧 카드이며, 크기도 카드 콘텐츠에 딱 맞는다. 검은 배경 /
-//  닫기 버튼 / 카운트다운 UI 는 `NativeAdInterstitialViewController` 가 이 뷰
-//  바깥에 배치한다. GMA 트래킹 연결은 `NativeAdHostUIView` 가 수행하고, 카드
+//  닫기 버튼 / 카운트다운 UI 는 `AdMobNativeAdInterstitialViewController` 가 이 뷰
+//  바깥에 배치한다. GMA 트래킹 연결은 `AdMobNativeAdHostUIView` 가 수행하고, 카드
 //  전체가 클릭 영역이 되어 배경 탭은 광고 클릭으로 이어지지 않는다.
 //
 //  스타일은 `set~` 빌더로 조정한다 (색·폰트·radius·미디어 비율). 레이아웃
@@ -17,7 +17,7 @@
 import UIKit
 import AdKit
 
-public final class InterstitialNativeAdTemplateUIView: NativeAdLayoutUIView {
+public final class AdMobNativeAdInterstitialTemplateUIView: NativeAdLayoutUIView {
 
     // MARK: - UI Components
 

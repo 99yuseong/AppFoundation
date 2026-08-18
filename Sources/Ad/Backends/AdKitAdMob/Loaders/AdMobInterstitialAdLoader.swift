@@ -13,55 +13,66 @@ import AdKit
 import os
 
 @MainActor
-public final class AdMobInterstitialAdLoader: NSObject, InterstitialAdControlling, FullScreenContentDelegate {
+public final class AdMobInterstitialAdLoader: InterstitialAdLoading {
 
     private let adUnitId: String
     private let log = Logger(subsystem: "AppFoundation", category: "AdKitAdMob.Interstitial")
 
-    private var cachedAd: InterstitialAd?
-    private var dismissContinuation: CheckedContinuation<Void, Never>?
+    /// load-once 캐시 + TTL + in-flight 합류 (`SingleFlightCache`, AdKit).
+    private let cache: SingleFlightCache<InterstitialAd>
+    private var isPresenting = false
 
-    public init(adUnitId: String) {
+    /// - Parameters:
+    ///   - adUnitId: placement 의 unit ID. 빈 값 = placement 비활성 (전체 no-op).
+    ///   - cacheDuration: preload 캐시 유효기간(초). GMA 광고는 로드 후 약 1시간
+    ///     만료되므로 기본 1시간 — 만료 캐시로 present 가 실패하는 것을 막는다.
+    public init(adUnitId: String, cacheDuration: TimeInterval? = 3600) {
         self.adUnitId = adUnitId
+        self.cache = SingleFlightCache(
+            cacheDuration: cacheDuration.map { .seconds($0) }
+        )
     }
 
-    public var isAdReady: Bool { cachedAd != nil }
+    public var isAdReady: Bool { cache.isReady }
 
-    /// 광고 1개를 미리 로드한다. 캐시가 있으면 no-op. 성공·실패와 무관하게
-    /// 로드가 끝나면 반환된다. (빈 unit ID = placement 비활성 — no-op)
-    public func loadAd() async {
-        guard !adUnitId.isEmpty, cachedAd == nil else { return }
+    /// 광고 1개를 미리 로드한다. 유효한 캐시가 있으면 no-op, 진행 중이면 합류한다
+    /// (에러도 합류 전파). no-fill 은 `AdError.noFill`, 그 외는 `AdError.loadFailed`.
+    public func loadAd() async throws {
+        guard !adUnitId.isEmpty else { return }
         do {
-            let ad = try await InterstitialAd.load(with: adUnitId, request: Request())
-            ad.fullScreenContentDelegate = self
-            cachedAd = ad
-            log.info("interstitial cached — unit: \(self.adUnitId)")
+            try await cache.loadIfNeeded {
+                let ad = try await InterstitialAd.load(with: self.adUnitId, request: Request())
+                self.log.info("interstitial cached — unit: \(self.adUnitId)")
+                return ad
+            }
         } catch {
             log.warning("interstitial load failed: \(error.localizedDescription)")
+            throw AdError(gmaLoadError: error)
         }
     }
 
     /// 캐시된 광고를 표시하고 닫힐 때 반환된다. 로드된 광고가 없으면
-    /// `AdError.notReady` 를 던진다.
+    /// `AdError.notReady`, 다른 광고 표시 중이면 `AdError.alreadyPresenting`
+    /// (캐시 미소비), 표시 시작 실패는 `AdError.presentationFailed`.
     public func present(from presenter: UIViewController) async throws {
-        guard let ad = cachedAd else { throw AdError.notReady }
-        cachedAd = nil
-        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-            dismissContinuation = continuation
+        try Task.checkCancellation()
+        guard !isPresenting else { throw AdError.alreadyPresenting }
+        guard let ad = cache.take() else { throw AdError.notReady }
+
+        // 만료·프레젠테이션 충돌 등은 표시 전에 SDK 검사로 거른다.
+        do {
+            try ad.canPresent(from: presenter)
+        } catch {
+            log.warning("interstitial cannot present: \(error.localizedDescription)")
+            throw AdError.presentationFailed(underlying: error)
+        }
+
+        isPresenting = true
+        defer { isPresenting = false }
+
+        let awaiter = FullScreenPresentationAwaiter()
+        try await awaiter.present(ad) {
             ad.present(from: presenter)
         }
-    }
-
-    // MARK: FullScreenContentDelegate
-
-    public func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
-        dismissContinuation?.resume()
-        dismissContinuation = nil
-    }
-
-    public func ad(_ ad: FullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
-        log.warning("interstitial present failed: \(error.localizedDescription)")
-        dismissContinuation?.resume()
-        dismissContinuation = nil
     }
 }

@@ -1,5 +1,5 @@
 //
-//  MockRewardedAd.swift
+//  MockRewardedAdLoader.swift
 //  AppFoundation / AdKit
 //
 //  Preview·단위 테스트용 SDK 무의존 보상형 광고. 시청 완료 여부는 주입값으로
@@ -9,7 +9,7 @@
 import UIKit
 
 @MainActor
-public final class MockRewardedAd: RewardedAdControlling {
+public final class MockRewardedAdLoader: RewardedAdLoading {
 
     public private(set) var isAdReady: Bool = false
 

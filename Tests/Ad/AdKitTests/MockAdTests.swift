@@ -16,7 +16,7 @@ struct MockAdTests {
 
     @Test("전면: 로드 전 present 는 notReady, 로드 후 present 는 캐시를 소비한다")
     func interstitialLifecycle() async throws {
-        let ad = MockInterstitialAd()
+        let ad = MockInterstitialAdLoader()
         let presenter = UIViewController()
 
         #expect(ad.isAdReady == false)
@@ -34,7 +34,7 @@ struct MockAdTests {
 
     @Test("보상형: 시청 완료 여부와 SSV userID 전달을 재현한다")
     func rewardedLifecycle() async throws {
-        let ad = MockRewardedAd(earnsReward: false)
+        let ad = MockRewardedAdLoader(earnsReward: false)
         let presenter = UIViewController()
 
         await #expect(throws: AdError.self) {
@@ -46,5 +46,26 @@ struct MockAdTests {
         #expect(earned == false)          // 주입값 그대로
         #expect(ad.lastUserID == "user-42")
         #expect(ad.isAdReady == false)    // 1회 소비
+    }
+
+    @Test("네이티브 cache-one: no-fill 은 noFill throw, 캐시 보유 시 no-op, consume 은 1회 소비")
+    func nativeCachedLifecycle() async throws {
+        let loader = MockNativeAdCachedLoader<String>()
+
+        await #expect(throws: AdError.self) {   // makeAd 기본값 nil = no-fill
+            try await loader.loadAd()
+        }
+        #expect(loader.isAdReady == false)
+
+        loader.makeAd = { "ad-1" }
+        try await loader.loadAd()
+        #expect(loader.isAdReady)
+
+        try await loader.loadAd()               // 캐시 보유 — 시도 미집계
+        #expect(loader.loadAttemptCount == 2)
+
+        #expect(loader.consumeAd() == "ad-1")
+        #expect(loader.consumeAd() == nil)      // 1회 소비
+        #expect(loader.isAdReady == false)
     }
 }

@@ -1,5 +1,5 @@
 //
-//  MockInterstitialAd.swift
+//  MockInterstitialAdLoader.swift
 //  AppFoundation / AdKit
 //
 //  Preview·단위 테스트용 SDK 무의존 전면 광고. 실제 표시 없이 계약의 상태
@@ -9,7 +9,7 @@
 import UIKit
 
 @MainActor
-public final class MockInterstitialAd: InterstitialAdControlling {
+public final class MockInterstitialAdLoader: InterstitialAdLoading {
 
     public private(set) var isAdReady: Bool = false
 

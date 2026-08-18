@@ -1,14 +1,14 @@
 //
-//  NativeAdInterstitialView.swift
+//  AdMobNativeAdInterstitialView.swift
 //  AppFoundation / AdKitAdMob
 //
-//  `NativeAdInterstitialViewController` 의 SwiftUI 쌍. `fullScreenCover` 안에
+//  `AdMobNativeAdInterstitialViewController` 의 SwiftUI 쌍. `fullScreenCover` 안에
 //  넣고, 닫기는 콜백에서 앱이 자기 상태(binding)를 끄는 것으로 처리한다 —
 //  VC 가 스스로 dismiss 하지 않아 SwiftUI 프레젠테이션 상태와 어긋나지 않는다.
 //
 //  ```swift
 //  .fullScreenCover(isPresented: $isShowingAd) {
-//      NativeAdInterstitialView(adLoader: loader)
+//      AdMobNativeAdInterstitialView(adLoader: loader)
 //          .setCloseButtonUnlockInterval(5)
 //          .setOnClose { isShowingAd = false }
 //          .ignoresSafeArea()
@@ -17,11 +17,12 @@
 //
 
 import SwiftUI
+import GoogleMobileAds
 import AdKit
 
-public struct NativeAdInterstitialView: UIViewControllerRepresentable {
+public struct AdMobNativeAdInterstitialView: UIViewControllerRepresentable {
 
-    private let adLoader: AdMobCachedNativeAdLoader
+    private let adLoader: any NativeAdCachedLoading<NativeAd>
     private var closeButtonUnlockInterval: TimeInterval = 5
     private var showsDefaultContentWhenAdMissing = false
     private var makeContentView: (@MainActor () -> NativeAdLayoutUIView)?
@@ -29,7 +30,7 @@ public struct NativeAdInterstitialView: UIViewControllerRepresentable {
     private var onClose: (() -> Void)?
     private var onAdNotReady: (() -> Void)?
 
-    public init(adLoader: AdMobCachedNativeAdLoader) {
+    public init(adLoader: any NativeAdCachedLoading<NativeAd>) {
         self.adLoader = adLoader
     }
 
@@ -50,7 +51,7 @@ public struct NativeAdInterstitialView: UIViewControllerRepresentable {
         return copy
     }
 
-    /// 광고 카드 디자인 팩토리. 기본은 `InterstitialNativeAdTemplateUIView`.
+    /// 광고 카드 디자인 팩토리. 기본은 `AdMobNativeAdInterstitialTemplateUIView`.
     public func setAdContentView(_ contentView: @escaping @MainActor () -> NativeAdLayoutUIView) -> Self {
         var copy = self
         copy.makeContentView = contentView
@@ -80,8 +81,8 @@ public struct NativeAdInterstitialView: UIViewControllerRepresentable {
 
     // MARK: - UIViewControllerRepresentable
 
-    public func makeUIViewController(context: Context) -> NativeAdInterstitialViewController {
-        let controller = NativeAdInterstitialViewController(adLoader: adLoader)
+    public func makeUIViewController(context: Context) -> AdMobNativeAdInterstitialViewController {
+        let controller = AdMobNativeAdInterstitialViewController(adLoader: adLoader)
             .setCloseButtonUnlockInterval(closeButtonUnlockInterval)
             .setShowsDefaultContentWhenAdMissing(showsDefaultContentWhenAdMissing)
         if let makeContentView {
@@ -92,12 +93,13 @@ public struct NativeAdInterstitialView: UIViewControllerRepresentable {
         }
         // dismiss 는 앱 상태가 소유한다 — VC 는 콜백만 쏜다.
         controller.dismissesOnCloseTap = false
-        controller.onCloseButtonTapped = onClose
-        controller.onAdNotReady = onAdNotReady
+        controller
+            .setOnClose(onClose)
+            .setOnAdNotReady(onAdNotReady)
         return controller
     }
 
-    public func updateUIViewController(_ uiViewController: NativeAdInterstitialViewController, context: Context) {
+    public func updateUIViewController(_ uiViewController: AdMobNativeAdInterstitialViewController, context: Context) {
         // 광고 소비형 단발 화면 — 생성 시점 설정으로 고정된다.
     }
 }

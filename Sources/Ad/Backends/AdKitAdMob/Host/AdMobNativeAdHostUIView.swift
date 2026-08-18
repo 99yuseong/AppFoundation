@@ -1,5 +1,5 @@
 //
-//  NativeAdHostUIView.swift
+//  AdMobNativeAdHostUIView.swift
 //  AppFoundation / AdKitAdMob
 //
 //  주입받은 `NativeAdLayoutUIView`(레이아웃)를 감싸 GMA 트래킹을 연결하는
@@ -17,7 +17,7 @@ import GoogleMobileAds
 import AdKit
 
 @MainActor
-public final class NativeAdHostUIView: NativeAdView {
+public final class AdMobNativeAdHostUIView: NativeAdView {
 
     // MARK: - Properties
 

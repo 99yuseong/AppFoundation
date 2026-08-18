@@ -3,8 +3,9 @@
 //  AppFoundation / AdKit
 //
 //  "지금 광고를 보여도 되는가" 의 추상화. 구독(광고 제거)·서버 킬스위치가
-//  kit 이 이유를 모르는 채 광고를 억제할 수 있게 한다. 기본은 "항상 허용" —
-//  앱이 진짜 체커(구독 상태 등)를 주입한다.
+//  kit 이 이유를 모르는 채 광고를 억제할 수 있게 한다. 기본은 "항상 허용"
+//  (`AlwaysAllowAdConditionChecker`) — 앱이 진짜 체커(구독 상태 등)를 주입한다.
+//  상주형 로더에 주입한다 — 온디맨드(전면·보상형)는 앱 파사드에서 게이트.
 //
 
 import Foundation
@@ -25,14 +26,4 @@ public protocol AdConditionChecker: Sendable {
     /// 숨김 상태 변화 스트림: `true` → 광고 제거(구독 시작 등),
     /// `false` → 광고 다시 표시.
     var shouldHideAds: AsyncStream<Bool> { get }
-}
-
-/// 기본 체커: 광고 항상 허용. 구독/원격 게이팅이 생기면 교체된다.
-/// `shouldHideAds` 스트림은 아무것도 방출하지 않는다 (변화 없음).
-public struct AlwaysAllowAdConditionChecker: AdConditionChecker {
-    public init() {}
-    public var isAdHidden: Bool { false }
-    public var isChecked: Bool { true }
-    public func waitUntilCheck() async {}
-    public var shouldHideAds: AsyncStream<Bool> { AsyncStream { _ in } }
 }
