@@ -2,9 +2,11 @@
 //  DemoAdCenter.swift
 //  AdSample
 //
-//  데모용 광고 조립 — 실제 앱에서는 이 역할을 앱의 로컬 AdKit 패키지
-//  (placement 파사드)가 맡는다. 로더는 전부 placement-generic 이라 unit ID 만
-//  주입하면 된다.
+//  데모용 광고 조립(composition root) — AdMob 구체 로더를 만드는 곳은 여기
+//  하나뿐이다. 섹션 뷰들은 Core 계약(`~AdLoading`/`NativeAd~Loading`)으로
+//  주입받으므로, 다른 백엔드로 바꾸려면 이 파일의 생성부만 교체하면 된다.
+//  실제 앱에서는 이 역할을 앱의 로컬 AdKit 패키지(placement 파사드)가 맡는다.
+//  로더는 전부 placement-generic 이라 unit ID 만 주입하면 된다.
 //
 
 import SwiftUI
@@ -18,14 +20,14 @@ final class DemoAdCenter: ObservableObject {
     /// 전면형 네이티브 (기본 템플릿 데모). video 테스트 unit 은 no-fill 이 잦아
     /// 일반 네이티브 unit 을 쓴다 — 영상 크리에이티브를 보려면
     /// `DemoAdUnitID.nativeAdvancedVideo` 로 바꾼다.
-    let nativeInterstitial = AdMobCachedNativeAdLoader(
+    let nativeInterstitial = AdMobNativeAdCachedLoader(
         adUnitId: DemoAdUnitID.nativeAdvanced
     )
 
     /// 상주 네이티브 배너 (커스텀 레이아웃 데모).
-    let banner = AdMobPersistentNativeAdLoader(
+    let banner = AdMobNativeAdPersistentLoader(
         adUnitId: DemoAdUnitID.nativeAdvanced,
-        configuration: PersistentNativeAdConfiguration(cacheDuration: nil)
+        configuration: .init(cacheDuration: nil)
     )
 
     /// SDK 전면 광고.

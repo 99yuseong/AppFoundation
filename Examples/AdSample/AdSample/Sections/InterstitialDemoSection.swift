@@ -2,17 +2,19 @@
 //  InterstitialDemoSection.swift
 //  AdSample
 //
-//  SDK 전면 광고 데모 — `AdMobInterstitialAdLoader` preload → present.
+//  SDK 전면 광고 데모 — preload → present.
+//  섹션은 Core 계약(`InterstitialAdLoading`)에만 의존한다 — AdMob 구현체는
+//  조립부(DemoAdCenter)가 주입하고, 이 파일은 AdKit 만 import 한다.
 //  로더가 ObservableObject 가 아니므로 섹션 로컬 상태로 버튼 활성화를 구동한다.
 //
 
 import SwiftUI
-import AdKitAdMob
+import AdKit
 import CoreKit
 
 struct InterstitialDemoSection: View {
 
-    let loader: AdMobInterstitialAdLoader
+    let loader: any InterstitialAdLoading
 
     @State private var status: DemoStatus = .idle
 
@@ -46,8 +48,12 @@ struct InterstitialDemoSection: View {
 
     private func load() async {
         status = .loading
-        await loader.loadAd()
-        status = loader.isAdReady ? .ready : .failure("no-fill")
+        do {
+            try await loader.loadAd()
+            status = .ready
+        } catch {
+            status = .failure(demoErrorText(error))
+        }
     }
 
     private func present() async {
@@ -63,9 +69,10 @@ struct InterstitialDemoSection: View {
     /// 온디맨드 패턴 — 캐시가 있으면 loadAd() 가 no-op 이라 그대로 즉시 표시된다.
     private func loadAndPresent() async {
         status = .loading
-        await loader.loadAd()
-        guard loader.isAdReady else {
-            status = .failure("no-fill")
+        do {
+            try await loader.loadAd()
+        } catch {
+            status = .failure(demoErrorText(error))
             return
         }
         await present()

@@ -2,18 +2,23 @@
 //  NativeInterstitialDemoSection.swift
 //  AdSample
 //
-//  전면형 네이티브 (기본 템플릿) 데모 — `AdMobCachedNativeAdLoader` 를 미리
-//  로드해 두고, 같은 캐시를 SwiftUI(fullScreenCover)·UIKit(present) 양쪽으로
-//  표시한다. 표시하면 캐시가 소비되므로 상태를 미로드로 되돌린다.
+//  전면형 네이티브 (기본 템플릿) 데모 — cache-one 로더를 미리 로드해 두고,
+//  같은 캐시를 SwiftUI(fullScreenCover)·UIKit(present) 양쪽으로 표시한다.
+//  섹션은 Core 계약(`NativeAdCachedLoading`)에 의존한다 — isAdReady 를 관찰해야
+//  하므로 제네릭으로 받는다 (`any` 존재형은 @ObservedObject 불가). 템플릿 뷰가
+//  GMA 광고를 소비하므로 `Ad == NativeAd` 제약과 AdKitAdMob import 는 남는다.
+//  표시하면 캐시가 소비되므로 상태를 미로드로 되돌린다.
 //
 
 import SwiftUI
+import GoogleMobileAds
+import AdKit
 import AdKitAdMob
 import CoreKit
 
-struct NativeInterstitialDemoSection: View {
+struct NativeInterstitialDemoSection<Loader: NativeAdCachedLoading>: View where Loader.Ad == NativeAd {
 
-    @ObservedObject var loader: AdMobCachedNativeAdLoader
+    @ObservedObject var loader: Loader
 
     @State private var status: DemoStatus = .idle
     @State private var isPresentingSwiftUI = false
@@ -51,12 +56,12 @@ struct NativeInterstitialDemoSection: View {
         } header: {
             Label("전면형 네이티브 — 기본 템플릿", systemImage: "rectangle.portrait.inset.filled")
         } footer: {
-            Text("InterstitialNativeAdTemplateUIView + 카운트다운 닫기. SwiftUI 쪽은 하단 커스텀 뷰(setBottomAccessoryView) 주입 예시, UIKit 쪽은 기본(닫기 버튼만). 표시하면 캐시가 소비되어 다시 로드해야 한다.")
+            Text("AdMobNativeAdInterstitialTemplateUIView + 카운트다운 닫기. SwiftUI 쪽은 하단 커스텀 뷰(setBottomAccessoryView) 주입 예시, UIKit 쪽은 기본(닫기 버튼만). 표시하면 캐시가 소비되어 다시 로드해야 한다.")
         }
     }
 
     private var interstitialCover: some View {
-        NativeAdInterstitialView(adLoader: loader)
+        AdMobNativeAdInterstitialView(adLoader: loader)
             .setCloseButtonUnlockInterval(3)
             .setBottomAccessoryView { Self.makePromotionButton() }
             .setOnClose {
@@ -83,8 +88,12 @@ struct NativeInterstitialDemoSection: View {
 
     private func load() async {
         status = .loading
-        await loader.loadAd()
-        status = loader.isAdReady ? .ready : .failure("no-fill")
+        do {
+            try await loader.loadAd()
+            status = .ready
+        } catch {
+            status = .failure(demoErrorText(error))
+        }
     }
 
     /// 온디맨드 패턴 — 캐시가 있으면 loadAd() 가 no-op 이라 그대로 즉시 표시된다.
@@ -95,9 +104,9 @@ struct NativeInterstitialDemoSection: View {
     }
 
     private func presentWithUIKit() {
-        let controller = NativeAdInterstitialViewController(adLoader: loader)
+        let controller = AdMobNativeAdInterstitialViewController(adLoader: loader)
             .setCloseButtonUnlockInterval(3)
-        controller.onCloseButtonTapped = { status = .idle }
+            .setOnClose { status = .idle }
         TopMostPresenter.topViewController()?.present(controller, animated: true)
     }
 }

@@ -2,7 +2,7 @@
 //  DemoStatus.swift
 //  AdSample
 //
-//  데모 공통 상태 표시 — 각 섹션이 로드/표시 흐름을 색상 배지 하나로 보여준다.
+//  데모 공통 상태 — 각 섹션이 로드/표시 흐름을 색상 배지 하나로 보여준다.
 //
 
 import SwiftUI
@@ -48,48 +48,14 @@ enum DemoStatus: Equatable {
     }
 }
 
-/// `LabeledContent` 우측에 얹는 캡슐형 상태 배지.
-struct DemoStatusBadge: View {
-
-    let status: DemoStatus
-
-    var body: some View {
-        HStack(spacing: 4) {
-            if let iconName = status.iconName {
-                Image(systemName: iconName)
-            } else {
-                ProgressView()
-                    .controlSize(.mini)
-            }
-            Text(status.text)
-        }
-        .font(.footnote.weight(.medium))
-        .foregroundStyle(status.color)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 3)
-        .background(status.color.opacity(0.12), in: Capsule())
-    }
-}
-
-/// "제목 — 상태 배지" 한 줄.
-struct DemoStatusRow: View {
-
-    let title: String
-    let status: DemoStatus
-
-    var body: some View {
-        LabeledContent(title) {
-            DemoStatusBadge(status: status)
-        }
-    }
-}
-
 /// 에러를 배지에 넣을 짧은 설명으로 변환.
 func demoErrorText(_ error: Error) -> String {
     guard let adError = error as? AdError else { return error.localizedDescription }
     switch adError {
     case .noFill: return "no-fill"
     case .notReady: return "광고 미준비"
+    case .alreadyPresenting: return "다른 광고 표시 중"
     case .loadFailed(let underlying): return underlying.localizedDescription
+    case .presentationFailed(let underlying): return "표시 실패 — \(underlying.localizedDescription)"
     }
 }

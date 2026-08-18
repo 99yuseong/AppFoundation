@@ -3,16 +3,18 @@
 //  AdSample
 //
 //  보상형 광고 데모 — 온디맨드 패턴: 탭 시점에 로드해 즉시 표시한다.
+//  섹션은 Core 계약(`RewardedAdLoading`)에만 의존한다 — AdMob 구현체는
+//  조립부(DemoAdCenter)가 주입하고, 이 파일은 AdKit 만 import 한다.
 //  실서비스에서는 userID 를 넘겨 SSV 로 서버가 보상을 지급한다.
 //
 
 import SwiftUI
-import AdKitAdMob
+import AdKit
 import CoreKit
 
 struct RewardedDemoSection: View {
 
-    let loader: AdMobRewardedAdLoader
+    let loader: any RewardedAdLoading
 
     @State private var status: DemoStatus = .idle
 
@@ -40,15 +42,19 @@ struct RewardedDemoSection: View {
 
     private func preload() async {
         status = .loading
-        await loader.loadAd()
-        status = loader.isAdReady ? .ready : .failure("no-fill")
+        do {
+            try await loader.loadAd()
+            status = .ready
+        } catch {
+            status = .failure(demoErrorText(error))
+        }
     }
 
     private func watch() async {
         status = .loading
-        await loader.loadAd()
         guard let presenter = TopMostPresenter.topViewController() else { return }
         do {
+            try await loader.loadAd()
             let earned = try await loader.present(from: presenter, userID: nil)
             status = earned ? .success("시청 완료 — 보상 지급 대상") : .failure("중도 이탈")
         } catch {

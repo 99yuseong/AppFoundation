@@ -5,14 +5,28 @@ AppFoundation **AdKit · AdKitAdMob** 데모 앱. Google 공식 **테스트 App 
 
 데모 내용:
 
-- **전면형 네이티브 (기본 템플릿)** — `InterstitialNativeAdTemplateUIView` +
+- **전면형 네이티브 (기본 템플릿)** — `AdMobNativeAdInterstitialTemplateUIView` +
   카운트다운 닫기 + 하단 커스텀 뷰 슬롯(`setBottomAccessoryView`, 기본은 닫기만).
   SwiftUI(`fullScreenCover`)와 UIKit(`present`) 양쪽.
 - **상주 네이티브 배너 (커스텀 레이아웃)** — `NativeAdLayoutUIView` 를 직접 상속한
-  `DemoBannerAdLayoutView` 를 `NativeAdHostView` 에 주입.
+  `DemoBannerAdLayoutView` 를 `AdMobNativeAdHostView` 에 주입.
 - **SDK 전면 광고** — `AdMobInterstitialAdLoader` preload → present.
 - **보상형 광고** — 온디맨드 로드 → 즉시 표시, 시청 완료 여부 표시.
 - **ATT** — `ATTAuthorization` 상태 조회·권한 요청.
+
+## 구조
+
+```
+AdSample/
+├── App/          진입점 (AdSampleApp) + 루트 화면 (ContentView)
+├── Composition/  조립부 — DemoAdCenter(AdMob 구체 로더 생성은 여기뿐), DemoAdUnitID
+├── Sections/     데모 섹션 5종 — Core 계약(~AdLoading·NativeAd~Loading)으로 주입받는다
+└── Components/   공용 UI — DemoStatus(+Badge·Row), DemoBannerAdLayoutView
+```
+
+섹션은 프로토콜 의존이다: 전면·보상형은 존재형(`any InterstitialAdLoading`),
+게시 값을 관찰하는 네이티브 두 섹션은 제네릭(`<L: NativeAdCachedLoading>` —
+존재형은 `@ObservedObject` 불가). 백엔드 교체 시 `DemoAdCenter` 생성부만 바꾼다.
 
 ## 실행
 
