@@ -25,7 +25,7 @@ Sources/{Domain}/{Layer}/{Target}
 │   ├── Core/ExperimentKit          # 실험·원격 설정 계약 — ExperimentClient·ExperimentKey (SDK 무의존)
 │   └── Backends/ExperimentKitFirebase  # Firebase Remote Config 어댑터 (firebase-ios-sdk 소유)
 └── Ad/
-    ├── Core/AdKit                  # 광고 계약 — 전면·보상형 계약, 네이티브 레이아웃 베이스, ATT, Mock (SDK 무의존)
+    ├── Core/AdKit                  # 광고 계약 — 로더 계약(전면·보상형·네이티브), 레이아웃 베이스, ATT, Mock (SDK 무의존)
     └── Backends/AdKitAdMob         # Google Mobile Ads 실행 — 로더·호스트·전면형 네이티브 기본 템플릿 (GMA 소유)
 ```
 
@@ -42,8 +42,15 @@ Sources/{Domain}/{Layer}/{Target}
 - **product 분리 원칙**: 외부 SDK 의존이 있는 타겟은 반드시 별도 product.
   provider 는 전부 `AuthKit{Provider}` 대칭 규칙 (외부 SDK 가 없는 Apple 도 동일 —
   provider 는 앱이 골라 링크하는 단위라 SDK 유무와 무관하게 대칭을 유지한다).
-- 새 도메인(Purchase/Ads/Analytics/Push)은 같은 구조로 추가한다.
+- 새 도메인(Purchase/Analytics/Push)은 같은 구조로 추가한다.
+- **1 타입 1 파일 + 서브도메인 폴더링** (Ad 도메인부터 표준): 새 타입은 반드시
+  자기 파일로 만들고(nested 타입 제외), 타깃 안은 기술 역할(Entity/Service)이
+  아니라 **응집된 서브도메인 단위**로 폴더링한다 — 함께 변하는 쌍(프로토콜↔기본
+  구현, 뷰↔DTO)이 같은 폴더에 있어야 한다. (Ad 선례: Loading/Layout/Condition/
+  ATT/Error/Support/Mock)
 - 각 타겟 최상단의 CLAUDE.md 가 그 모듈의 책임·경계를 정의한다 — 수정 전에 읽는다.
+  같은 위치의 `AGENTS.md` 는 CLAUDE.md 로의 심볼릭 링크다 (Codex 등 다른 에이전트가
+  같은 문서를 읽게 하는 이중화 — 내용을 따로 쓰지 말 것, 링크 유지).
 
 ## 개방형 provider 원칙
 

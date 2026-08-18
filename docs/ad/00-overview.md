@@ -10,12 +10,22 @@ TumTumRead(AdFeature)와 Doran(AdKit)의 광고 모듈을 통합·일반화한 �
   각 앱의 로컬 AdKit 패키지(DoranAdKit·TumTumAdKit)가 조립한다.
 - **레이아웃은 백엔드 중립.** 앱은 `NativeAdLayoutUIView`(AdKit)를 상속해
   자체 디자인을 만든다 — UIKit + AdKit 만 import. 미디어·AdChoices 는 자리만
-  잡고, SDK 뷰 삽입·트래킹 등록은 백엔드 호스트(`NativeAdHostUIView`)가 한다.
+  잡고, SDK 뷰 삽입·트래킹 등록은 백엔드 호스트(`AdMobNativeAdHostUIView`)가 한다.
   같은 레이아웃이 향후 다른 백엔드(AppLovin 등)에서도 재사용된다.
+- **로더 계약은 Core 소유.** 전면·보상형(`InterstitialAdLoading`/`RewardedAdLoading`)과
+  네이티브 수명주기(`NativeAdLoading`/`NativeAdCachedLoading`/`NativeAdPersistentLoading`/
+  `NativeAdRotatingLoading` — associatedtype `Ad` 로 SDK 타입 추상화)를 백엔드 로더가
+  채택한다. 앱 파사드·테스트는 계약(또는 `Mock/`)에 의존할 수 있다.
+- **네이밍 규칙**: 백엔드 public 타입은 `{백엔드}{광고 단위}{기능}` 순
+  (예: `AdMobNativeAdCachedLoader`) — 자동완성·정렬이 백엔드→단위→기능으로
+  그룹핑되고, 다른 백엔드 추가 시 `AppLovinNativeAd~` 가 대칭으로 선다.
 - **백엔드 확장**: AppLovin 등을 추가하려면 `Ad/Backends/AdKitAppLovin` 타깃을
-  만들고 (1) 전면·보상형은 `InterstitialAdControlling`/`RewardedAdControlling`
-  채택, (2) 네이티브는 자체 호스트 뷰가 `NativeAdLayoutUIView` 의 컨테이너에
-  자기 SDK 뷰를 삽입 + `NativeAdContent` 변환 extension 제공.
+  만들고 (1) 전면·보상형은 `InterstitialAdLoading`/`RewardedAdLoading` 채택,
+  (2) 네이티브 로더는 Core 의 `NativeAd~Loading` 계열을 자기 SDK 광고 타입으로
+  채택, (3) 자체 호스트 뷰가 `NativeAdLayoutUIView` 의 컨테이너에 자기 SDK 뷰를
+  삽입 + `NativeAdContent` 변환 extension 제공. 기본 템플릿
+  (`AdMobNativeAdInterstitialTemplateUIView`)은 GMA 무의존이라 두 번째 백엔드
+  도입 시 Core 로 이동해 공유한다 (현재는 사용처가 AdMob 뿐이라 백엔드 잔류).
 
 ## 앱 통합 순서 (AdMob)
 
@@ -25,6 +35,8 @@ TumTumRead(AdFeature)와 Doran(AdKit)의 광고 모듈을 통합·일반화한 �
 2. **unit ID** — placement 별 unit ID 도 xcconfig → Info.plist 커스텀 키로
    주입하고 앱에서 읽는다 (CoreKit `ConfigValues` 사용 가능). 빈 unit ID 는
    로더가 no-op 처리하므로 "빈 값 = placement 비활성" 컨벤션이 성립한다.
+   예외: 단발 `AdMobNativeAdLoader.load()` 는 반환값이 필수라 no-op 이 불가능 —
+   빈 unit ID 는 `AdError.noFill` 을 던진다.
 3. **SDK 시작** — 앱 시작 시 1회:
    ```swift
    await AdMobConfigurator(testDeviceIdentifiers: testIDs).configure()
@@ -36,40 +48,48 @@ TumTumRead(AdFeature)와 Doran(AdKit)의 광고 모듈을 통합·일반화한 �
 4. **ATT** — 온보딩에서 `await ATTAuthorization.request()` (AdKit).
    SDK 시작과 순서 무관. 분석용 상태는 `ATTAuthorization.rawStatus`.
 5. **광고 제거 게이트** — 구독 등이 있으면 `AdConditionChecker` 구현체를
-   로더에 주입한다 (기본은 `AlwaysAllowAdConditionChecker`).
+   **상주형 로더(Persistent/Rotating)에 주입**한다 (기본은
+   `AlwaysAllowAdConditionChecker`). 사용자가 명시적으로 여는 전면·보상형은
+   로더가 아니라 **앱 placement 파사드에서 게이트**한다 (조건이면 안 부르면 됨).
 
 ## 광고 타입별 사용
 
-| 타입 | 로더 | 패턴 |
+| 타입 | 로더 (채택 계약) | 패턴 |
 |---|---|---|
-| 네이티브 (단발) | `AdMobNativeAdLoader` | 호출부가 주기 소유, 틱마다 1개 로드 |
-| 네이티브 (전면형) | `AdMobCachedNativeAdLoader` | cache-one + 유효기간 + 합류. 미리 `loadAd()` → 노출 시 소비 |
-| 네이티브 (상주 배너) | `AdMobPersistentNativeAdLoader` | `@Published currentAd`/`shouldShowAd` 관찰 |
-| 네이티브 (로테이션) | `AdMobRotatingNativeAdLoader` | 다중 캐시 + 주기 교체 |
-| 전면 | `AdMobInterstitialAdLoader` | preload → `present(from:)`, dismiss 까지 suspend |
-| 보상형 | `AdMobRewardedAdLoader` | **온디맨드** (show rate 보호), SSV userID 는 present 시 전달 |
+| 네이티브 (단발) | `AdMobNativeAdLoader` (`NativeAdLoading`) | 호출부가 주기 소유, 틱마다 1개 로드 |
+| 네이티브 (전면형) | `AdMobNativeAdCachedLoader` (`NativeAdCachedLoading`) | cache-one + 유효기간 + 합류. 미리 `loadAd()` → 노출 시 소비 |
+| 네이티브 (상주 배너) | `AdMobNativeAdPersistentLoader` (`NativeAdPersistentLoading`) | `@Published currentAd`/`shouldShowAd` 관찰 |
+| 네이티브 (로테이션) | `AdMobNativeAdRotatingLoader` (`NativeAdRotatingLoading`) | `start()` 후 다중 캐시 + 주기 교체, `stop()` |
+| 전면 | `AdMobInterstitialAdLoader` (`InterstitialAdLoading`) | preload(TTL 기본 1시간) → `present(from:)`, dismiss 까지 suspend |
+| 보상형 | `AdMobRewardedAdLoader` (`RewardedAdLoading`) | **온디맨드** (show rate 보호), SSV userID 는 present 시 전달 |
+
+에러 모델: `loadAd()`/`load()` 는 throw 한다 — no-fill 은 `AdError.noFill`,
+그 외 SDK 실패는 `AdError.loadFailed`. `present` 는 미로드 `notReady`, 표시 중
+재호출 `alreadyPresenting`(캐시 미소비), 표시 시작 실패 `presentationFailed`.
+진행 중 로드에 합류한 호출은 같은 에러를 받는다. 로더 설정은 각 로더의
+nested `Configuration` (`Configuration()` == `.default`).
 
 ### 전면형 네이티브 (기본 템플릿)
 
 ```swift
-let loader = AdMobCachedNativeAdLoader(adUnitId: unitID)
-await loader.loadAd()   // 노출 전에 미리
+let loader = AdMobNativeAdCachedLoader(adUnitId: unitID)
+try await loader.loadAd()   // 노출 전에 미리 (no-fill 은 AdError.noFill)
 
 // UIKit
-let vc = NativeAdInterstitialViewController(adLoader: loader)
+let vc = AdMobNativeAdInterstitialViewController(adLoader: loader)
     .setCloseButtonUnlockInterval(5)
     .setBottomAccessoryView(mySubscribeButton)  // 선택 — 닫기 버튼 위 커스텀 뷰. 없으면 닫기만
 presenter.present(vc, animated: true)   // presenter 가 없으면 TopMostPresenter.topViewController()
 
 // SwiftUI
 .fullScreenCover(isPresented: $isShowingAd) {
-    NativeAdInterstitialView(adLoader: loader)
+    AdMobNativeAdInterstitialView(adLoader: loader)
         .setOnClose { isShowingAd = false }
         .ignoresSafeArea()
 }
 ```
 
-- 기본 카드 디자인은 `InterstitialNativeAdTemplateUIView` (TumTumRead 레이아웃).
+- 기본 카드 디자인은 `AdMobNativeAdInterstitialTemplateUIView` (TumTumRead 레이아웃).
   스타일은 `set~` 빌더(색·폰트·radius·미디어 비율), 레이아웃 전체 교체는
   `setAdContentView(_:)` 에 `NativeAdLayoutUIView` 서브클래스 주입.
 
@@ -84,9 +104,15 @@ final class MyAdView: NativeAdLayoutUIView {          // import AdKit (GMA 불�
     override func configureDefaultContent() { ... }   // no-fill 폴백
 }
 
-// 표시: UIKit 은 NativeAdHostUIView(contentView:), SwiftUI 는
-NativeAdHostView(ad: loader.currentAd) { MyAdView() }
+// 표시: UIKit 은 AdMobNativeAdHostUIView(contentView:), SwiftUI 는
+if loader.shouldShowAd {                                  // 숨김 = 슬롯 제거
+    AdMobNativeAdHostView(ad: loader.currentAd) { MyAdView() }
+}
 ```
+
+의미 구분: 호스트에 `ad: nil` 을 넘기는 것은 **기본(no-fill) 콘텐츠 표시**이고,
+`shouldShowAd == false` 는 **숨김**(구독 등) — 숨김은 호스트 자체를 뷰 트리에서
+제거해야 한다.
 
 ## 앱 이관 메모
 
