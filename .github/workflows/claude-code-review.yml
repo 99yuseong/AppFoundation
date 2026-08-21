@@ -62,4 +62,4 @@ jobs:
 
             리뷰는 `gh pr comment` 로 PR 에 한 번에 남겨라.
           claude_args: |
-            --allowedTools "Read,Grep,Glob,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*),Bash(git log:*),Bash(git diff:*)"
+            --allowedTools "Read,Grep,Glob,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*),Bash(git log:*),Bash(git diff:*),Bash(git show:*),Bash(ls:*),Bash(find:*),Bash(readlink:*),Bash(cat:*),Bash(head:*),Bash(sed:*),Bash(wc:*)"
