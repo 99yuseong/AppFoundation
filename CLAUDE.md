@@ -49,8 +49,10 @@ Sources/{Domain}/{Layer}/{Target}
   구현, 뷰↔DTO)이 같은 폴더에 있어야 한다. (Ad 선례: Loading/Layout/Condition/
   ATT/Error/Support/Mock)
 - 각 타겟 최상단의 CLAUDE.md 가 그 모듈의 책임·경계를 정의한다 — 수정 전에 읽는다.
-  같은 위치의 `AGENTS.md` 는 CLAUDE.md 로의 심볼릭 링크다 (Codex 등 다른 에이전트가
-  같은 문서를 읽게 하는 이중화 — 내용을 따로 쓰지 말 것, 링크 유지).
+  전 모듈에 같은 위치의 `AGENTS.md` 를 CLAUDE.md 심볼릭 링크로 둔다 (Codex 등 다른
+  에이전트가 같은 문서를 읽게 하는 이중화 — 내용을 따로 쓰지 말 것, 링크 유지).
+  새 타깃을 추가할 때 `ln -s CLAUDE.md AGENTS.md` 와 Package.swift `exclude` 두 항목
+  추가를 함께 한다.
 
 ## 개방형 provider 원칙
 
@@ -78,7 +80,8 @@ xcodebuild test -scheme AppFoundation-Package -destination 'platform=iOS Simulat
 xcodebuild build -project Examples/AuthSample/AuthSample.xcodeproj -scheme AuthSample -destination 'generic/platform=iOS Simulator'
 ```
 
-- swift-tools 6.2 / iOS 17+ / Swift 6 모드 (AuthKitKakao 만 v5 — KakaoSDK Sendable 미표기)
+- swift-tools 6.2 / iOS 17+ / Swift 6 모드 (외부 SDK 가 Sendable 미표기라 v6 strict
+  소음이 큰 `AuthKitKakao`·`AdKitAdMob` 만 v5 — 각 타깃 CLAUDE.md 에 사유 기재)
 - swift-testing 사용. HTTP 는 URLProtocol 스텁 + `.serialized` suite 패턴.
 - **테스트는 핵심 로직만.** 상수를 재서술하는 테스트는 만들지 않는다.
   (예외: `.asset(_:)` 처럼 실패해도 컴파일이 통과하고 조용히 폴백하는 지점)

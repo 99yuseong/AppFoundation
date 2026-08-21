@@ -17,6 +17,7 @@
 - 외부 의존 추가: `swift-package-manager-google-mobile-ads` from 13.5.0
 - 컨벤션 신설: 1 타입 1 파일 + 서브도메인 폴더링, 백엔드 public 타입
   `{백엔드}{광고 단위}{기능}` 네이밍, `AGENTS.md`(=CLAUDE.md 심볼릭 링크)
+  — 기존 13개 모듈에도 소급 적용
 
 ### 변경(호환 깨짐) — 브랜치 내 API 확정 리네임 (0.x minor = breaking)
 - 이 도메인은 0.8.0 이 첫 공개라 외부 마이그레이션 대상은 없지만, 브랜치

@@ -59,7 +59,7 @@ let package = Package(
         .target(
             name: "CoreKit",
             path: "Sources/Core/CoreKit",
-            exclude: ["CLAUDE.md"],
+            exclude: ["CLAUDE.md", "AGENTS.md"],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
         // Core + REST 백엔드를 한 타깃으로 묶는다 (둘 다 외부 의존 zero).
@@ -72,8 +72,8 @@ let package = Package(
             exclude: [
                 "Providers",                    // 별도 타깃 (SDK 의존)
                 "Backends/AuthKitSupabase",     // 별도 타깃 (supabase-swift)
-                "Core/AuthKit/CLAUDE.md",
-                "Backends/AuthKitREST/CLAUDE.md",
+                "Core/AuthKit/CLAUDE.md", "Core/AuthKit/AGENTS.md",
+                "Backends/AuthKitREST/CLAUDE.md", "Backends/AuthKitREST/AGENTS.md",
             ],
             resources: [.process("Core/AuthKit/Resources")],
             swiftSettings: [.swiftLanguageMode(.v6)]
@@ -82,7 +82,7 @@ let package = Package(
             name: "AuthKitApple",
             dependencies: ["AuthKit"],
             path: "Sources/Auth/Providers/AuthKitApple",
-            exclude: ["CLAUDE.md"],
+            exclude: ["CLAUDE.md", "AGENTS.md"],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
         .target(
@@ -92,7 +92,7 @@ let package = Package(
                 .product(name: "GoogleSignIn", package: "GoogleSignIn-iOS"),
             ],
             path: "Sources/Auth/Providers/AuthKitGoogle",
-            exclude: ["CLAUDE.md"],
+            exclude: ["CLAUDE.md", "AGENTS.md"],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
         .target(
@@ -104,7 +104,7 @@ let package = Package(
                 .product(name: "KakaoSDKUser", package: "kakao-ios-sdk"),
             ],
             path: "Sources/Auth/Providers/AuthKitKakao",
-            exclude: ["CLAUDE.md"],
+            exclude: ["CLAUDE.md", "AGENTS.md"],
             // KakaoSDK 완료 핸들러가 Sendable 미표기 — v6 strict 에서 소음이 커
             // v5 모드로 둔다 (Doran AdKit 과 같은 선례).
             swiftSettings: [.swiftLanguageMode(.v5)]
@@ -116,7 +116,7 @@ let package = Package(
                 .product(name: "Supabase", package: "supabase-swift"),
             ],
             path: "Sources/Auth/Backends/AuthKitSupabase",
-            exclude: ["CLAUDE.md"],
+            exclude: ["CLAUDE.md", "AGENTS.md"],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
         // Core + REST 백엔드를 한 타깃으로 묶는다 (AuthKit 과 같은 구조 — 둘 다 의존 zero).
@@ -125,8 +125,8 @@ let package = Package(
             path: "Sources/API",
             exclude: [
                 "Backends/APIKitSupabase",      // 별도 타깃 (supabase-swift)
-                "Core/APIKit/CLAUDE.md",
-                "Backends/APIKitREST/CLAUDE.md",
+                "Core/APIKit/CLAUDE.md", "Core/APIKit/AGENTS.md",
+                "Backends/APIKitREST/CLAUDE.md", "Backends/APIKitREST/AGENTS.md",
             ],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
@@ -137,21 +137,21 @@ let package = Package(
                 .product(name: "Supabase", package: "supabase-swift"),
             ],
             path: "Sources/API/Backends/APIKitSupabase",
-            exclude: ["CLAUDE.md"],
+            exclude: ["CLAUDE.md", "AGENTS.md"],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
         .target(
             name: "ImageKit",
             dependencies: ["CoreKit"],
             path: "Sources/Image/Core/ImageKit",
-            exclude: ["CLAUDE.md"],
+            exclude: ["CLAUDE.md", "AGENTS.md"],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
         // Backends 에 SDK-free 계층이 없어 APIKit 처럼 path 를 도메인 루트로 올리지 않는다.
         .target(
             name: "ExperimentKit",
             path: "Sources/Experiment/Core/ExperimentKit",
-            exclude: ["CLAUDE.md"],
+            exclude: ["CLAUDE.md", "AGENTS.md"],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
         .target(
@@ -161,7 +161,7 @@ let package = Package(
                 .product(name: "FirebaseRemoteConfig", package: "firebase-ios-sdk"),
             ],
             path: "Sources/Experiment/Backends/ExperimentKitFirebase",
-            exclude: ["CLAUDE.md"],
+            exclude: ["CLAUDE.md", "AGENTS.md"],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
         // Backends 에 SDK-free 계층이 없어 path 를 도메인 루트로 올리지 않는다 (ExperimentKit 과 동일).

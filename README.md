@@ -90,7 +90,7 @@ xcodebuild build -scheme AppFoundation-Package -destination 'generic/platform=iO
 xcodebuild test -scheme AppFoundation-Package -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
-- swift-tools 6.2 / iOS 17+ / Swift 6 모드 (AuthKitKakao 만 v5 — KakaoSDK 호환)
+- swift-tools 6.2 / iOS 17+ / Swift 6 모드 (`AuthKitKakao`·`AdKitAdMob` 만 v5 — 각각 KakaoSDK·GMA 호환)
 - 로컬 개발 시 앱 workspace 에 클론 폴더를 드래그하면 원격 패키지를 오버라이드한다
 
 ## 버전
