@@ -8,8 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		4216A37430332E6000FA4D9C /* AdKit in Frameworks */ = {isa = PBXBuildFile; productRef = 4216A37330332E6000FA4D9C /* AdKit */; };
-		4216A37630332E6000FA4D9C /* AdKitAdMob in Frameworks */ = {isa = PBXBuildFile; productRef = 4216A37530332E6000FA4D9C /* AdKitAdMob */; };
 		4216A37830332E6000FA4D9C /* CoreKit in Frameworks */ = {isa = PBXBuildFile; productRef = 4216A37730332E6000FA4D9C /* CoreKit */; };
+		4216B94D3037F9DF00FA4D9C /* AdKitAdMob in Frameworks */ = {isa = PBXBuildFile; productRef = 4216B94C3037F9DF00FA4D9C /* AdKitAdMob */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,7 +30,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4216A37830332E6000FA4D9C /* CoreKit in Frameworks */,
-				4216A37630332E6000FA4D9C /* AdKitAdMob in Frameworks */,
+				4216B94D3037F9DF00FA4D9C /* AdKitAdMob in Frameworks */,
 				4216A37430332E6000FA4D9C /* AdKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -77,6 +77,7 @@
 				4216A37330332E6000FA4D9C /* AdKit */,
 				4216A37530332E6000FA4D9C /* AdKitAdMob */,
 				4216A37730332E6000FA4D9C /* CoreKit */,
+				4216B94C3037F9DF00FA4D9C /* AdKitAdMob */,
 			);
 			productName = AdSample;
 			productReference = 4216A36430332E2B00FA4D9C /* AdSample.app */;
@@ -107,7 +108,7 @@
 			mainGroup = 4216A35B30332E2B00FA4D9C;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				4216A37230332E6000FA4D9C /* XCLocalSwiftPackageReference "../../../AppFoundation-ad-kit" */,
+				4216B9493037F9DF00FA4D9C /* XCLocalSwiftPackageReference "../../../AppFoundation" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 4216A36530332E2B00FA4D9C /* Products */;
@@ -351,9 +352,9 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		4216A37230332E6000FA4D9C /* XCLocalSwiftPackageReference "../../../AppFoundation-ad-kit" */ = {
+		4216B9493037F9DF00FA4D9C /* XCLocalSwiftPackageReference "../../../AppFoundation" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = "../../../AppFoundation-ad-kit";
+			relativePath = ../../../AppFoundation;
 		};
 /* End XCLocalSwiftPackageReference section */
 
@@ -369,6 +370,10 @@
 		4216A37730332E6000FA4D9C /* CoreKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = CoreKit;
+		};
+		4216B94C3037F9DF00FA4D9C /* AdKitAdMob */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AdKitAdMob;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
