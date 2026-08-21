@@ -63,6 +63,14 @@ jobs:
             - 지적할 게 없으면 짧게 "문제 없음"이라고만 해라.
             - 한국어로 작성해라.
 
-            리뷰는 `gh pr comment` 로 PR 에 한 번에 남겨라.
+            작업 방식 (중요):
+            - 서브에이전트를 만들지 마라. 네가 직접 순서대로 읽고 리뷰해라.
+              병렬 에이전트는 결과를 종합하기 전에 실행이 끝나 리뷰가 유실된다.
+            - 파일 리다이렉션(`>`)·파이프·`mkdir` 를 쓰지 마라. 샌드박스가 막는다.
+              `gh pr diff` 는 인자 없이 그대로 호출하고, 특정 파일만 볼 때는
+              `gh pr diff <번호> -- <경로>` 처럼 인자로 좁혀라. 파일 내용은 Read 로 읽어라.
+
+            마지막에 반드시 `gh pr comment` 로 PR 에 리뷰를 한 번에 남겨라 —
+            이 호출을 하지 않으면 리뷰가 아무 데도 남지 않는다.
           claude_args: |
             --allowedTools "Read,Grep,Glob,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*),Bash(git log:*),Bash(git diff:*),Bash(git show:*),Bash(ls:*),Bash(find:*),Bash(readlink:*),Bash(cat:*),Bash(head:*),Bash(sed:*),Bash(wc:*)"
