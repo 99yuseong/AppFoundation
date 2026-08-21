@@ -35,6 +35,9 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           # 푸시할 때마다 코멘트가 쌓이지 않게 하나를 갱신한다.
           use_sticky_comment: "true"
+          # 거부된 도구 이름이 로그에 남게 한다 — 없으면 denial 개수만 보이고
+          # 무엇이 막혔는지 알 수 없다 (리뷰가 조용히 빈손으로 끝난 원인 추적용).
+          show_full_output: "true"
           prompt: |
             이 PR 의 변경분을 리뷰해라. 저장소 루트와 각 모듈 최상단의
             CLAUDE.md 에 이 프로젝트의 규칙이 있으니 먼저 읽어라.
