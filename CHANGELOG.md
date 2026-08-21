@@ -1,5 +1,38 @@
 # Changelog
 
+## 0.8.0 (unreleased — feature/ad-kit)
+
+### 추가 — Ad 도메인 (TumTumRead AdFeature + Doran AdKit 통합 이식)
+- `AdKit` (신규 도메인 `Sources/Ad/`, SDK 무의존): 로더 계약
+  (`InterstitialAdLoading`/`RewardedAdLoading` + associatedtype 기반
+  `NativeAdLoading`/`NativeAdCachedLoading`/`NativeAdPersistentLoading`/
+  `NativeAdRotatingLoading`), 백엔드 중립 네이티브 레이아웃
+  (`NativeAdLayoutUIView`+`NativeAdContent`), `AdConditionChecker`,
+  `ATTAuthorization`, `AdError`, Mock 3종
+- `AdKitAdMob`: GMA 13.x 실행 — placement-generic 로더 6종
+  (단발/캐시/상주/로테이션 네이티브, 전면·보상형+SSV, TTL·single-flight 합류·
+  상태 가드 내장), `AdMobNativeAdHost(UI)View`, 전면형 네이티브 기본 템플릿
+  (카운트다운 닫기 + `setBottomAccessoryView` 커스텀 슬롯, UIKit/SwiftUI 쌍)
+- `Examples/AdSample` 데모 앱 (Google 테스트 unit, 계약 주입 구조)
+- 외부 의존 추가: `swift-package-manager-google-mobile-ads` from 13.5.0
+- 컨벤션 신설: 1 타입 1 파일 + 서브도메인 폴더링, 백엔드 public 타입
+  `{백엔드}{광고 단위}{기능}` 네이밍, `AGENTS.md`(=CLAUDE.md 심볼릭 링크)
+  — 기존 13개 모듈에도 소급 적용
+
+### 변경(호환 깨짐) — 브랜치 내 API 확정 리네임 (0.x minor = breaking)
+- 이 도메인은 0.8.0 이 첫 공개라 외부 마이그레이션 대상은 없지만, 브랜치
+  중간 커밋 대비 이름이 바뀌었다: `~Controlling` → `~Loading`
+  (`InterstitialAdControlling` 등), `AdMobCachedNativeAdLoader` →
+  `AdMobNativeAdCachedLoader`(Persistent/Rotating 동일 어순), `NativeAdHost~` →
+  `AdMobNativeAdHost~`, `NativeAdInterstitial~`(VC/View/Template) →
+  `AdMobNativeAdInterstitial~`, `MockInterstitialAd`/`MockRewardedAd` →
+  `Mock~AdLoader`, Configuration 3종 → 각 로더 nested `Configuration`
+  (`Configuration()` == `.default`), Persistent `loadAds()` → `loadAd()`,
+  Rotating `observeCondition()` → `start()`/`stop()`,
+  `shouldRemoveAds` → `shouldShowAd`, 콜백 빌더 `setOnClose` 통일,
+  `loadAd()` 는 throwing (`AdError.noFill`/`.loadFailed`), present 에
+  `.alreadyPresenting`/`.presentationFailed` 추가
+
 ## 0.7.0 (2026-08-04)
 
 ### 추가 — Experiment 도메인 (TumTumRead 에서 이식)

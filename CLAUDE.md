@@ -21,9 +21,12 @@ Sources/{Domain}/{Layer}/{Target}
 │       └── APIKitREST              # URLSession 실행 — 의존성 zero → APIKit 타깃에 포함
 ├── Image/
 │   └── Core/ImageKit               # 다운샘플링·이미지 캐시 파이프라인·RemoteImage 뷰 쌍 (SDK 무의존)
-└── Experiment/
-    ├── Core/ExperimentKit          # 실험·원격 설정 계약 — ExperimentClient·ExperimentKey (SDK 무의존)
-    └── Backends/ExperimentKitFirebase  # Firebase Remote Config 어댑터 (firebase-ios-sdk 소유)
+├── Experiment/
+│   ├── Core/ExperimentKit          # 실험·원격 설정 계약 — ExperimentClient·ExperimentKey (SDK 무의존)
+│   └── Backends/ExperimentKitFirebase  # Firebase Remote Config 어댑터 (firebase-ios-sdk 소유)
+└── Ad/
+    ├── Core/AdKit                  # 광고 계약 — 로더 계약(전면·보상형·네이티브), 레이아웃 베이스, ATT, Mock (SDK 무의존)
+    └── Backends/AdKitAdMob         # Google Mobile Ads 실행 — 로더·호스트·전면형 네이티브 기본 템플릿 (GMA 소유)
 ```
 
 - **폴더 = 계층, 타깃 = SDK 경계.** 이 둘은 1:1 이 아니다. 계층 구분은 디렉토리로
@@ -39,8 +42,17 @@ Sources/{Domain}/{Layer}/{Target}
 - **product 분리 원칙**: 외부 SDK 의존이 있는 타겟은 반드시 별도 product.
   provider 는 전부 `AuthKit{Provider}` 대칭 규칙 (외부 SDK 가 없는 Apple 도 동일 —
   provider 는 앱이 골라 링크하는 단위라 SDK 유무와 무관하게 대칭을 유지한다).
-- 새 도메인(Purchase/Ads/Analytics/Push)은 같은 구조로 추가한다.
+- 새 도메인(Purchase/Analytics/Push)은 같은 구조로 추가한다.
+- **1 타입 1 파일 + 서브도메인 폴더링** (Ad 도메인부터 표준): 새 타입은 반드시
+  자기 파일로 만들고(nested 타입 제외), 타깃 안은 기술 역할(Entity/Service)이
+  아니라 **응집된 서브도메인 단위**로 폴더링한다 — 함께 변하는 쌍(프로토콜↔기본
+  구현, 뷰↔DTO)이 같은 폴더에 있어야 한다. (Ad 선례: Loading/Layout/Condition/
+  ATT/Error/Support/Mock)
 - 각 타겟 최상단의 CLAUDE.md 가 그 모듈의 책임·경계를 정의한다 — 수정 전에 읽는다.
+  전 모듈에 같은 위치의 `AGENTS.md` 를 CLAUDE.md 심볼릭 링크로 둔다 (Codex 등 다른
+  에이전트가 같은 문서를 읽게 하는 이중화 — 내용을 따로 쓰지 말 것, 링크 유지).
+  새 타깃을 추가할 때 `ln -s CLAUDE.md AGENTS.md` 와 Package.swift `exclude` 두 항목
+  추가를 함께 한다.
 
 ## 개방형 provider 원칙
 
@@ -68,7 +80,8 @@ xcodebuild test -scheme AppFoundation-Package -destination 'platform=iOS Simulat
 xcodebuild build -project Examples/AuthSample/AuthSample.xcodeproj -scheme AuthSample -destination 'generic/platform=iOS Simulator'
 ```
 
-- swift-tools 6.2 / iOS 17+ / Swift 6 모드 (AuthKitKakao 만 v5 — KakaoSDK Sendable 미표기)
+- swift-tools 6.2 / iOS 17+ / Swift 6 모드 (외부 SDK 가 Sendable 미표기라 v6 strict
+  소음이 큰 `AuthKitKakao`·`AdKitAdMob` 만 v5 — 각 타깃 CLAUDE.md 에 사유 기재)
 - swift-testing 사용. HTTP 는 URLProtocol 스텁 + `.serialized` suite 패턴.
 - **테스트는 핵심 로직만.** 상수를 재서술하는 테스트는 만들지 않는다.
   (예외: `.asset(_:)` 처럼 실패해도 컴파일이 통과하고 조용히 폴백하는 지점)
