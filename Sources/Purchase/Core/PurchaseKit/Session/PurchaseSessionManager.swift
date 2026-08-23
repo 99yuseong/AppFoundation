@@ -96,6 +96,9 @@ public actor PurchaseSessionManager: PurchaseSessionManaging {
         guard signedInUserID != userID else { return }
 
         await performEnsureConfigured()
+        // 유저 전환 중 signIn 이 실패하면 이전 id 가 남아 ensureSignedIn 이 통과해 구매가
+        // 이전 계정에 귀속된다 — 시도 전에 로컬 identity 를 무효화한다.
+        signedInUserID = nil
         do {
             try await purchaseService.signIn(appUserID: userID)
             signedInUserID = userID
@@ -119,8 +122,13 @@ public actor PurchaseSessionManager: PurchaseSessionManaging {
 
     private func performEnsureConfigured() async {
         guard !isConfigured else { return }
-        await purchaseService.configure()
+        let cached = await purchaseService.configure()
         isConfigured = true
+        // 백엔드가 캐시 id 로 부팅해 이미 식별돼 있으면(RevenueCat appUserID 설정) 로컬 기록을
+        // 맞춘다 — 아니면 logout 이 no-op 돼 identity 가 잔류한다.
+        if let cached, !cached.isAnonymous, signedInUserID == nil {
+            signedInUserID = cached.appUserId
+        }
     }
 
     private func performEnsureSignedIn() async throws {

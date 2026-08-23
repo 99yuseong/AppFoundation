@@ -87,4 +87,20 @@ struct StoreKitEntitlementResolverTests {
         #expect(info.activeSubscriptions == ["sub.other"])
         #expect(info.hasAnyActiveEntitlement == false)
     }
+
+    @Test("비갱신 구독은 만료를 모르면 권한을 열지 않는다")
+    func nonRenewingWithoutExpiryIsInactive() {
+        let catalog = EntitlementCatalog(["plus": ["pass"]])
+        let unknown = StoreKitEntitlementResolver.resolve(
+            transactions: [tx("pass", type: .nonRenewableSubscription, expiresIn: nil)],
+            catalog: catalog, appUserID: nil, now: now
+        )
+        #expect(unknown.hasAnyActiveEntitlement == false)
+
+        let known = StoreKitEntitlementResolver.resolve(
+            transactions: [tx("pass", type: .nonRenewableSubscription, expiresIn: 3_600)],
+            catalog: catalog, appUserID: nil, now: now
+        )
+        #expect(known.isEntitled(to: "plus"))
+    }
 }

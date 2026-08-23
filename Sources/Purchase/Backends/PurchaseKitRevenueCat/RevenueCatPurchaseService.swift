@@ -10,7 +10,8 @@ import Foundation
 import RevenueCat
 import PurchaseKit
 
-public final class RevenueCatPurchaseService: PurchaseService {
+/// actor — 동시 `configure()` 가 전역 `Purchases.configure` 를 두 번 부르지 않게 직렬화한다.
+public actor RevenueCatPurchaseService: PurchaseService {
 
     public struct Configuration: Sendable {
 
@@ -39,8 +40,9 @@ public final class RevenueCatPurchaseService: PurchaseService {
 
     // MARK: 부팅·식별
 
+    /// configure 전에는 빈 문자열 — `Purchases.shared` 는 configure 전 접근 시 fatalError.
     public var appUserID: String {
-        get async { Purchases.isConfigured ? Purchases.shared.appUserID : "" }
+        Purchases.isConfigured ? Purchases.shared.appUserID : ""
     }
 
     @discardableResult
@@ -61,6 +63,7 @@ public final class RevenueCatPurchaseService: PurchaseService {
 
     @discardableResult
     public func signIn(appUserID: String) async throws -> PurchaseKit.CustomerInfo {
+        try ensureConfigured()
         do {
             let (info, _) = try await Purchases.shared.logIn(appUserID)
             return currentInfo(info)
@@ -71,6 +74,7 @@ public final class RevenueCatPurchaseService: PurchaseService {
 
     @discardableResult
     public func signOut() async throws -> PurchaseKit.CustomerInfo {
+        try ensureConfigured()
         do {
             let info = try await Purchases.shared.logOut()
             return currentInfo(info)
@@ -81,8 +85,12 @@ public final class RevenueCatPurchaseService: PurchaseService {
 
     // MARK: 고객 정보
 
-    public var customerInfoStream: AsyncStream<PurchaseKit.CustomerInfo> {
+    public nonisolated var customerInfoStream: AsyncStream<PurchaseKit.CustomerInfo> {
         AsyncStream { continuation in
+            guard Purchases.isConfigured else {
+                continuation.finish()
+                return
+            }
             let task = Task {
                 for await info in Purchases.shared.customerInfoStream {
                     continuation.yield(self.currentInfo(info))
@@ -95,6 +103,7 @@ public final class RevenueCatPurchaseService: PurchaseService {
 
     @discardableResult
     public func refreshCustomerInfo() async throws -> PurchaseKit.CustomerInfo {
+        try ensureConfigured()
         do {
             return currentInfo(try await Purchases.shared.customerInfo(fetchPolicy: .fetchCurrent))
         } catch {
@@ -105,6 +114,7 @@ public final class RevenueCatPurchaseService: PurchaseService {
     // MARK: 상품
 
     public func products(of type: ProductType) async -> [ProductInfo] {
+        guard Purchases.isConfigured else { return [] }
         if let cached = Purchases.shared.cachedOfferings {
             return products(in: cached, of: type)
         }
@@ -117,6 +127,7 @@ public final class RevenueCatPurchaseService: PurchaseService {
     }
 
     public func refreshProducts(of type: ProductType) async throws -> [ProductInfo] {
+        try ensureConfigured()
         do {
             return products(in: try await Purchases.shared.offerings(), of: type)
         } catch {
@@ -128,6 +139,7 @@ public final class RevenueCatPurchaseService: PurchaseService {
 
     @discardableResult
     public func purchase(_ product: ProductInfo) async throws -> PurchaseKit.CustomerInfo {
+        try ensureConfigured()
         guard let package = await package(for: product.identifier) else {
             throw PurchaseError.productNotFound(product.identifier)
         }
@@ -142,6 +154,7 @@ public final class RevenueCatPurchaseService: PurchaseService {
 
     @discardableResult
     public func restorePurchases() async throws -> PurchaseKit.CustomerInfo {
+        try ensureConfigured()
         do {
             return currentInfo(try await Purchases.shared.restorePurchases())
         } catch {
@@ -151,6 +164,7 @@ public final class RevenueCatPurchaseService: PurchaseService {
 
     @discardableResult
     public func syncPurchases() async throws -> PurchaseKit.CustomerInfo {
+        try ensureConfigured()
         do {
             return currentInfo(try await Purchases.shared.syncPurchases())
         } catch {
@@ -161,6 +175,7 @@ public final class RevenueCatPurchaseService: PurchaseService {
     // MARK: 시스템 UI
 
     public func showManageSubscriptions() async throws {
+        try ensureConfigured()
         do {
             try await Purchases.shared.showManageSubscriptions()
         } catch {
@@ -169,18 +184,24 @@ public final class RevenueCatPurchaseService: PurchaseService {
     }
 
     public func presentOfferCodeRedeemSheet() async throws {
+        try ensureConfigured()
         await MainActor.run { Purchases.shared.presentCodeRedemptionSheet() }
     }
 
     // MARK: 분석 연동
 
     public func setIntegrationID(_ id: String, for integration: PurchaseIntegration) async {
+        guard Purchases.isConfigured else { return }
         integration.apply(id: id, to: Purchases.shared.attribution)
     }
 
     // MARK: - 내부
 
-    private func currentInfo(_ rc: RevenueCat.CustomerInfo) -> PurchaseKit.CustomerInfo {
+    private func ensureConfigured() throws {
+        guard Purchases.isConfigured else { throw PurchaseError.notConfigured }
+    }
+
+    private nonisolated func currentInfo(_ rc: RevenueCat.CustomerInfo) -> PurchaseKit.CustomerInfo {
         PurchaseKit.CustomerInfo(revenueCat: rc, appUserID: Purchases.shared.appUserID, isAnonymous: Purchases.shared.isAnonymous)
     }
 
@@ -194,6 +215,7 @@ public final class RevenueCatPurchaseService: PurchaseService {
     }
 
     private func package(for identifier: ProductIdentifier) async -> Package? {
+        guard Purchases.isConfigured else { return nil }
         if let cached = Purchases.shared.cachedOfferings,
            let match = packages(in: cached).first(where: { $0.storeProduct.productIdentifier == identifier }) {
             return match

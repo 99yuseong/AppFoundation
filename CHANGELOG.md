@@ -27,6 +27,12 @@
 - `PurchaseServiceFactory` 삭제 — 백엔드가 별도 product 라 앱이 구현을 직접 생성
 - Mock 의 `entitlementForProduct` 클로저 → `EntitlementCatalog`
 - `PurchaseError.noActiveScene` 추가
+- (Codex 교차 리뷰 반영) `StoreKitPurchaseService.Configuration` 에 `nonRenewingDurations`
+  (비갱신 구독 만료 — 미설정 시 권한 미부여)·`consumableFulfillment`(지급 성공 후에만
+  finish) 추가, configure in-flight 공유, 스트림 continuation 누수 수정;
+  `RevenueCatPurchaseService` actor 화 + configure 전 `Purchases.shared` 접근 가드,
+  NSError 도메인 기반 `ErrorCode` 복원; `PurchaseSessionManager` 유저 전환 실패 시
+  이전 identity 무효화 + 부팅 시 캐시 identity 동기화
 
 ## 0.8.0 (unreleased — feature/ad-kit)
 

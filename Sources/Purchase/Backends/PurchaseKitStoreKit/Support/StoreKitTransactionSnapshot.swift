@@ -46,10 +46,11 @@ public struct StoreKitTransactionSnapshot: Sendable, Hashable {
         self.currencyCode = currencyCode
     }
 
-    /// 환불/해지 전이고 만료 전이면 활성.
+    /// 환불/해지 전이고 만료 전이면 활성. 비갱신 구독은 만료를 알아야만 활성 —
+    /// StoreKit 이 만료일을 주지 않으므로 기간 미설정이면 영구 권한으로 오인하지 않는다.
     public func isActive(at now: Date) -> Bool {
         guard revokedAt == nil else { return false }
-        guard let expiresAt else { return true }
+        guard let expiresAt else { return productType != .nonRenewableSubscription }
         return expiresAt > now
     }
 }

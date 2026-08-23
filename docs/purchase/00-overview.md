@@ -33,7 +33,11 @@ Doran(`Packages/Purchase`)과 TumTumRead(`Domain/Purchase` + `Data/Purchase`)의
    // StoreKit
    let purchase: any PurchaseService = StoreKitPurchaseService(configuration: .init(
        productIdentifiers: ["com.app.plus.monthly", "com.app.plus.yearly", "com.app.tip"],
-       entitlements: EntitlementCatalog(["plus": ["com.app.plus.monthly", "com.app.plus.yearly"]])
+       entitlements: EntitlementCatalog(["plus": ["com.app.plus.monthly", "com.app.plus.yearly"]]),
+       // 비갱신 구독은 만료일을 StoreKit 이 주지 않는다 — 기간을 선언해야 권한이 열린다
+       nonRenewingDurations: ["com.app.pass.season": 90 * 86_400],
+       // 소비성을 서버가 지급한다면 지급 성공 후 true — 그때 finish 된다 (미지급 유실 방지)
+       consumableFulfillment: { tx in await server.grant(tx) }
    ))
    // RevenueCat
    let purchase: any PurchaseService = RevenueCatPurchaseService(configuration: .init(

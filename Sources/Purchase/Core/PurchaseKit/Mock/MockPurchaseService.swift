@@ -67,8 +67,9 @@ public actor MockPurchaseService: PurchaseService {
     public nonisolated var customerInfoStream: AsyncStream<CustomerInfo> {
         AsyncStream { continuation in
             let id = UUID()
-            Task { await self.register(continuation, id: id) }
+            let registration = Task { await self.register(continuation, id: id) }
             continuation.onTermination = { _ in
+                registration.cancel()
                 Task { await self.unregister(id) }
             }
         }
@@ -138,6 +139,8 @@ public actor MockPurchaseService: PurchaseService {
     // MARK: 스트림 배선
 
     private func register(_ continuation: AsyncStream<CustomerInfo>.Continuation, id: UUID) {
+        // 등록 전에 스트림이 종료됐으면(onTermination 선행) 보관하지 않는다 — 누수 방지.
+        guard !Task.isCancelled else { return }
         continuations[id] = continuation
         continuation.yield(customerInfo)
     }
