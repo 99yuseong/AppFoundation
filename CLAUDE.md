@@ -24,16 +24,22 @@ Sources/{Domain}/{Layer}/{Target}
 ├── Experiment/
 │   ├── Core/ExperimentKit          # 실험·원격 설정 계약 — ExperimentClient·ExperimentKey (SDK 무의존)
 │   └── Backends/ExperimentKitFirebase  # Firebase Remote Config 어댑터 (firebase-ios-sdk 소유)
-└── Ad/
-    ├── Core/AdKit                  # 광고 계약 — 로더 계약(전면·보상형·네이티브), 레이아웃 베이스, ATT, Mock (SDK 무의존)
-    └── Backends/AdKitAdMob         # Google Mobile Ads 실행 — 로더·호스트·전면형 네이티브 기본 템플릿 (GMA 소유)
+├── Ad/
+│   ├── Core/AdKit                  # 광고 계약 — 로더 계약(전면·보상형·네이티브), 레이아웃 베이스, ATT, Mock (SDK 무의존)
+│   └── Backends/AdKitAdMob         # Google Mobile Ads 실행 — 로더·호스트·전면형 네이티브 기본 템플릿 (GMA 소유)
+└── Purchase/
+    ├── Core/PurchaseKit            # 인앱결제 계약 — PurchaseService·SDK-free 모델·EntitlementCatalog·세션·Mock (SDK 무의존)
+    └── Backends/
+        ├── PurchaseKitStoreKit     # StoreKit 2 순정 — 의존 zero → PurchaseKit 타깃에 포함 (폴더만 분리)
+        └── PurchaseKitRevenueCat   # purchases-ios-spm → 별도 타깃
 ```
 
 - **폴더 = 계층, 타깃 = SDK 경계.** 이 둘은 1:1 이 아니다. 계층 구분은 디렉토리로
   표현하고, **타깃은 외부 SDK 의존이 갈리는 지점에서만** 쪼갠다 — 타깃이 늘수록
   빌드 그래프가 무거워지므로 의존성 없는 계층끼리는 한 타깃으로 묶는다.
   현재 `AuthKit` 타깃 = `Core/AuthKit` + `Backends/AuthKitREST`,
-  `APIKit` 타깃 = `Core/APIKit` + `Backends/APIKitREST`
+  `APIKit` 타깃 = `Core/APIKit` + `Backends/APIKitREST`,
+  `PurchaseKit` 타깃 = `Core/PurchaseKit` + `Backends/PurchaseKitStoreKit`
   (Package.swift 에서 `path` 를 도메인 루트로 올리고 SDK 폴더만 `exclude`).
   → 새 계층·폴더를 추가할 때 **자동으로 새 타깃을 만들지 말 것.** 외부 SDK 를
     물지 않으면 기존 타깃의 `path` 안에 폴더만 추가한다.
@@ -113,4 +119,5 @@ PR 마다 두 워크플로우가 돈다 — 둘 다 Claude 기반이고 ubuntu �
 
 - 설정 순서·서버 계약: `docs/auth/00~08` (00 이 진입점)
 - API 도메인 개념·비용 원칙·서버 확장 스토리: `docs/api/00-overview.md`
+- Purchase 백엔드 선택·통합 순서·앱 마이그레이션: `docs/purchase/00-overview.md`
 - 신규 앱 통합 안내 스킬: `.claude/skills/auth-setup`

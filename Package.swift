@@ -16,13 +16,17 @@ import PackageDescription
 //   Experiment/Backends/ ExperimentKitFirebase (Firebase Remote Config 어댑터)
 //   Ad/Core/             AdKit (광고 계약 — 로더 계약(전면·보상형·네이티브), 레이아웃 베이스, ATT)
 //   Ad/Backends/         AdKitAdMob (Google Mobile Ads 실행 + 전면형 네이티브 기본 템플릿)
-//   (추후)               Purchase/PurchaseKit, Analytics/AnalyticsKit, Push/…
+//   Purchase/Core/       PurchaseKit (인앱결제 계약 — PurchaseService·SDK-free 모델·세션·Mock)
+//   Purchase/Backends/   PurchaseKitStoreKit (StoreKit 2 순정 — 의존 zero, PurchaseKit 타깃에 포함),
+//                        PurchaseKitRevenueCat (RevenueCat 실행)
+//   (추후)               Analytics/AnalyticsKit, Push/…
 //
 // 타깃 분리 기준 = 외부 SDK 의존 (계층이 아니다).
 // 계층은 디렉토리로 표현하고, 타깃은 SDK 경계에서만 쪼갠다 — 타깃이 늘수록
 // 빌드 그래프만 무거워지므로 의존성 없는 계층끼리는 한 타깃으로 묶는다.
 //   AuthKit  = Auth/Core/AuthKit + Auth/Backends/AuthKitREST (둘 다 의존성 zero)
 //   APIKit   = API/Core/APIKit  + API/Backends/APIKitREST  (둘 다 의존성 zero)
+//   PurchaseKit = Purchase/Core/PurchaseKit + Purchase/Backends/PurchaseKitStoreKit (StoreKit 은 시스템 프레임워크)
 // SPM 은 product 단위로 링크하므로, 앱은 자기가 쓰는 provider 만 골라 추가하면
 // 안 쓰는 SDK(KakaoSDK, GoogleSignIn)가 바이너리에 딸려 오지 않는다.
 
@@ -44,6 +48,8 @@ let package = Package(
         .library(name: "ExperimentKitFirebase", targets: ["ExperimentKitFirebase"]),
         .library(name: "AdKit",           targets: ["AdKit"]),
         .library(name: "AdKitAdMob",      targets: ["AdKitAdMob"]),
+        .library(name: "PurchaseKit",     targets: ["PurchaseKit"]),
+        .library(name: "PurchaseKitRevenueCat", targets: ["PurchaseKitRevenueCat"]),
     ],
     dependencies: [
         // 하한 = TumTumRead 현재 pin(2.29.3). Doran(2.51.0)과 range 호환.
@@ -54,6 +60,8 @@ let package = Package(
         .package(url: "https://github.com/firebase/firebase-ios-sdk", from: "12.1.0"),
         // 하한 = Doran 현재 pin(13.5.0). TumTumRead 는 채택 시점에 12→13 마이그레이션.
         .package(url: "https://github.com/googleads/swift-package-manager-google-mobile-ads.git", from: "13.5.0"),
+        // 하한 = TumTumRead 현재 pin(5.33.0). Doran(5.80.0 exact)과 range 호환.
+        .package(url: "https://github.com/RevenueCat/purchases-ios-spm.git", from: "5.33.0"),
     ],
     targets: [
         .target(
@@ -184,6 +192,28 @@ let package = Package(
             // 각 로더에 @MainActor 를 명시한다 (AuthKitKakao 와 같은 선례).
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
+        // Core + StoreKit 백엔드를 한 타깃으로 묶는다 (AuthKit 과 같은 구조 — StoreKit 은 시스템 프레임워크).
+        .target(
+            name: "PurchaseKit",
+            dependencies: ["CoreKit"],
+            path: "Sources/Purchase",
+            exclude: [
+                "Backends/PurchaseKitRevenueCat",   // 별도 타깃 (purchases-ios-spm)
+                "Core/PurchaseKit/CLAUDE.md", "Core/PurchaseKit/AGENTS.md",
+                "Backends/PurchaseKitStoreKit/CLAUDE.md", "Backends/PurchaseKitStoreKit/AGENTS.md",
+            ],
+            swiftSettings: [.swiftLanguageMode(.v6)]
+        ),
+        .target(
+            name: "PurchaseKitRevenueCat",
+            dependencies: [
+                "PurchaseKit",
+                .product(name: "RevenueCat", package: "purchases-ios-spm"),
+            ],
+            path: "Sources/Purchase/Backends/PurchaseKitRevenueCat",
+            exclude: ["CLAUDE.md", "AGENTS.md"],
+            swiftSettings: [.swiftLanguageMode(.v6)]
+        ),
         .testTarget(
             name: "CoreKitTests",
             dependencies: ["CoreKit"],
@@ -228,6 +258,11 @@ let package = Package(
             name: "AdKitTests",
             dependencies: ["AdKit"],
             path: "Tests/Ad/AdKitTests"
+        ),
+        .testTarget(
+            name: "PurchaseKitTests",
+            dependencies: ["PurchaseKit"],
+            path: "Tests/Purchase/PurchaseKitTests"
         ),
     ]
 )
