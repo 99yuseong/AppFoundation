@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.9.0 (unreleased — feature/purchase-kit)
+
+### 추가 — Purchase 도메인 (Doran Packages/Purchase + TumTumRead Purchase 통합 이식)
+- `PurchaseKit` (신규 도메인 `Sources/Purchase/`, SDK 무의존): `PurchaseService` facade
+  (configure/signIn/signOut · customerInfoStream · products · purchase/restore/
+  **syncPurchases** · showManageSubscriptions/**presentOfferCodeRedeemSheet** ·
+  **setIntegrationID**), SDK-free 모델(`ProductInfo`·StoreKit 표준 4종 `ProductType`·
+  `CustomerInfo`·`EntitlementInfo`·`SubscriptionInfo`), 개방형 `EntitlementID`,
+  **`EntitlementCatalog`**(권한→상품 선언), `PurchaseIntegration`(개방형 String struct),
+  `PurchaseSessionManager`(configure 1회 소유·login/logout·ensureSignedIn self-heal·
+  FIFO 직렬화 — Doran 이식, UUID 검증은 `validateUserID` 주입으로 일반화),
+  `MockPurchaseService`(public actor) + 샘플 값
+- **`StoreKitPurchaseService`** (StoreKit 2 순정, `PurchaseKit` 타깃 포함): 상품 id 목록 +
+  카탈로그 주입, `Transaction.currentEntitlements` → `StoreKitEntitlementResolver`(순수
+  함수, 테스트 대상)로 권한 파생, `Transaction.updates` 리스너, `AppStore.sync()`,
+  `appAccountToken` 식별, 시스템 구독 관리·오퍼코드 시트
+- `PurchaseKitRevenueCat`: `RevenueCatPurchaseService` — Doran 구현 이식 + sync/오퍼코드/
+  attribution(Mixpanel·Firebase·Amplitude + 일반 속성 폴백). Swift 6 모드
+- 외부 의존 추가: `purchases-ios-spm` from 5.33.0
+- `docs/purchase/00-overview.md` — 백엔드 선택 기준·통합 순서·Doran/TumTumRead 마이그레이션 노트
+
+### 설계 변경 (Doran Packages/Purchase 대비)
+- `configure(PurchaseConfiguration)` → 무인자 `configure()`; 설정은 각 백엔드의 nested
+  `Configuration` 으로 이동 (RevenueCat 전용 개념을 계약에서 제거)
+- `PurchaseServiceFactory` 삭제 — 백엔드가 별도 product 라 앱이 구현을 직접 생성
+- Mock 의 `entitlementForProduct` 클로저 → `EntitlementCatalog`
+- `PurchaseError.noActiveScene` 추가
+- (Codex 교차 리뷰 반영) `StoreKitPurchaseService.Configuration` 에 `nonRenewingDurations`
+  (비갱신 구독 만료 — 미설정 시 권한 미부여)·`consumableFulfillment`(지급 성공 후에만
+  finish) 추가, configure in-flight 공유, 스트림 continuation 누수 수정;
+  `RevenueCatPurchaseService` actor 화 + configure 전 `Purchases.shared` 접근 가드,
+  NSError 도메인 기반 `ErrorCode` 복원; `PurchaseSessionManager` 유저 전환 실패 시
+  이전 identity 무효화 + 부팅 시 캐시 identity 동기화
+
 ## 0.8.0 (unreleased — feature/ad-kit)
 
 ### 추가 — Ad 도메인 (TumTumRead AdFeature + Doran AdKit 통합 이식)

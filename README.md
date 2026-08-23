@@ -25,7 +25,9 @@ Auth 는 3계층 — **Core**(타입·오케스트레이터·버튼) / **Provide
 | `ExperimentKitFirebase` | Backend | `FirebaseExperimentClient` — Firebase A/B Testing 이 Remote Config 에 배정한 값 제공 | firebase-ios-sdk | ✅ |
 | `AdKit` | Core | 광고 계약 계층 — 로더 계약(`InterstitialAdLoading`/`RewardedAdLoading`/`NativeAd~Loading` 계열), `NativeAdLayoutUIView`(앱 커스텀 레이아웃 베이스)·`NativeAdContent`, `AdConditionChecker`(구독 게이트), `ATTAuthorization`, Mock | 없음 (AppTrackingTransparency) | ✅ |
 | `AdKitAdMob` | Backend | AdMob 실행 — placement-generic 로더(단발/캐시/상주/로테이션 네이티브, 전면, 보상형+SSV), `AdMobNativeAdHostUIView`/`AdMobNativeAdHostView`, **전면형 네이티브 기본 템플릿**(UIKit/SwiftUI, `set~` 빌더) | GoogleMobileAds | ✅ |
-| `PurchaseKit` / `AnalyticsKit` / Push | — | — | — | 예정 |
+| `PurchaseKit` | Core + Backend | 인앱결제 계약 — `PurchaseService`(configure/signIn/상품/구매/복원/sync/오퍼코드), SDK-free 모델(`ProductInfo`·`CustomerInfo`·`EntitlementCatalog`), `PurchaseSessionManager`(identity 수명주기·직렬화), `MockPurchaseService` + **`StoreKitPurchaseService`**(StoreKit 2 순정) | 없음 (StoreKit) | ✅ |
+| `PurchaseKitRevenueCat` | Backend | `RevenueCatPurchaseService` — offerings·entitlement·attribution 연동 | purchases-ios-spm | ✅ |
+| `AnalyticsKit` / Push | — | — | — | 예정 |
 
 ## 빠른 시작 (Auth)
 
