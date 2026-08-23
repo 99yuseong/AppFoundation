@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.9.0 (unreleased — feature/purchase-kit)
+## 0.9.0 (2026-08-24)
 
 ### 추가 — Purchase 도메인 (Doran Packages/Purchase + TumTumRead Purchase 통합 이식)
 - `PurchaseKit` (신규 도메인 `Sources/Purchase/`, SDK 무의존): `PurchaseService` facade
@@ -34,7 +34,7 @@
   NSError 도메인 기반 `ErrorCode` 복원; `PurchaseSessionManager` 유저 전환 실패 시
   이전 identity 무효화 + 부팅 시 캐시 identity 동기화
 
-## 0.8.0 (unreleased — feature/ad-kit)
+## 0.8.0 (2026-08-21)
 
 ### 추가 — Ad 도메인 (TumTumRead AdFeature + Doran AdKit 통합 이식)
 - `AdKit` (신규 도메인 `Sources/Ad/`, SDK 무의존): 로더 계약
