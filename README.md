@@ -83,7 +83,7 @@ xcodebuild test -scheme AppFoundation-Package -destination 'platform=iOS Simulat
 | [docs/api/01-storage.md](docs/api/01-storage.md) | Storage 계약, R2 전환 체크리스트, 계정 전략 |
 | [docs/ad](docs/ad/00-overview.md) | 광고 도메인 구조와 AdMob 통합 |
 | [docs/purchase](docs/purchase/00-overview.md) | 결제 백엔드 선택 기준과 앱 마이그레이션 |
-| [Examples](Examples) | AuthSample · AdSample 데모 앱 |
+| [Examples](Examples) | AuthSample · AdSample · StorageSample 데모 앱 |
 
 신규 앱에 로그인을 붙일 때는 동봉된 Claude Code 스킬(`.claude/skills/auth-setup`)을
 앱 프로젝트에 심볼릭 링크하고 `/auth-setup`을 실행하면 설정 순서를 안내받을 수 있습니다.

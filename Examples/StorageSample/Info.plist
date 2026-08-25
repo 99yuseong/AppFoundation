@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- 자기 Supabase 프로젝트 값으로 교체 (Auth 에서 anonymous sign-in 활성 필요) -->
+	<key>SUPABASE_URL</key>
+	<string>https://YOUR-PROJECT.supabase.co</string>
+	<key>SUPABASE_ANON_KEY</key>
+	<string>YOUR-ANON-KEY</string>
+	<!-- 배포한 storage-sign Worker 주소 (cloudflare/workers/storage-sign README 참조) -->
+	<key>STORAGE_WORKER_URL</key>
+	<string>https://YOUR-storage-sign.YOUR-ACCOUNT.workers.dev</string>
+</dict>
+</plist>
