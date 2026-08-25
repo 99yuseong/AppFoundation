@@ -1,0 +1,16 @@
+{
+  "name": "storage-sign",
+  "private": true,
+  "description": "AppFoundation R2 presigned URL 발급 Worker 템플릿",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev"
+  },
+  "dependencies": {
+    "aws4fetch": "^1.0.20",
+    "jose": "^5.9.6"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

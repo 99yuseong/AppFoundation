@@ -22,7 +22,7 @@
 | `AuthKitGoogle` | Google 로그인 provider | GoogleSignIn |
 | `AuthKitKakao` | Kakao 로그인 provider (네이티브, OIDC) | KakaoSDK |
 | `AuthKitSupabase` | Supabase 세션 교환 백엔드 | supabase-swift |
-| `APIKit` | 서버 API 계약 — `Endpoint` 선언, `APIClient`, URLSession 실행 포함 | – |
+| `APIKit` | 서버 API 계약 — `Endpoint` 선언, `APIClient`, URLSession·R2 스토리지 실행 포함 | – |
 | `APIKitSupabase` | Edge Function·RPC·DB·Storage·Realtime 실행 | supabase-swift |
 | `ImageKit` | 원격 이미지 파이프라인 — 다운샘플링, 캐시, `RemoteImage` 뷰 | – |
 | `ExperimentKit` | A/B 실험·원격 설정 계약 | – |
@@ -80,6 +80,7 @@ xcodebuild test -scheme AppFoundation-Package -destination 'platform=iOS Simulat
 |---|---|
 | [docs/auth](docs/auth/00-overview.md) | 콘솔 설정 체크리스트, 앱 통합, 회원탈퇴 Edge Function, 커스텀 백엔드 |
 | [docs/api](docs/api/00-overview.md) | API 도메인 개념과 서버 확장 스토리 |
+| [docs/api/01-storage.md](docs/api/01-storage.md) | Storage 계약, R2 전환 체크리스트, 계정 전략 |
 | [docs/ad](docs/ad/00-overview.md) | 광고 도메인 구조와 AdMob 통합 |
 | [docs/purchase](docs/purchase/00-overview.md) | 결제 백엔드 선택 기준과 앱 마이그레이션 |
 | [Examples](Examples) | AuthSample · AdSample 데모 앱 |

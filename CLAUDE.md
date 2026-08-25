@@ -18,7 +18,9 @@ Sources/{Domain}/{Layer}/{Target}
 │   ├── Core/APIKit                 # 서버 API 계약 계층 — Endpoint·APIClient (SDK 무의존)
 │   └── Backends/
 │       ├── APIKitSupabase          # EF/RPC/DB/Storage/Realtime 실행 (supabase-swift 소유)
-│       └── APIKitREST              # URLSession 실행 — 의존성 zero → APIKit 타깃에 포함
+│       ├── APIKitREST              # URLSession 실행 — 의존성 zero → APIKit 타깃에 포함
+│       └── APIKitR2                # R2 티켓제 실행(presign) — 의존성 zero → APIKit 타깃에 포함
+│                                    #   (서버 짝: cloudflare/workers/storage-sign 템플릿)
 ├── Image/
 │   └── Core/ImageKit               # 다운샘플링·이미지 캐시 파이프라인·RemoteImage 뷰 쌍 (SDK 무의존)
 ├── Experiment/
@@ -38,7 +40,7 @@ Sources/{Domain}/{Layer}/{Target}
   표현하고, **타깃은 외부 SDK 의존이 갈리는 지점에서만** 쪼갠다 — 타깃이 늘수록
   빌드 그래프가 무거워지므로 의존성 없는 계층끼리는 한 타깃으로 묶는다.
   현재 `AuthKit` 타깃 = `Core/AuthKit` + `Backends/AuthKitREST`,
-  `APIKit` 타깃 = `Core/APIKit` + `Backends/APIKitREST`,
+  `APIKit` 타깃 = `Core/APIKit` + `Backends/APIKitREST` + `Backends/APIKitR2`,
   `PurchaseKit` 타깃 = `Core/PurchaseKit` + `Backends/PurchaseKitStoreKit`
   (Package.swift 에서 `path` 를 도메인 루트로 올리고 SDK 폴더만 `exclude`).
   → 새 계층·폴더를 추가할 때 **자동으로 새 타깃을 만들지 말 것.** 외부 SDK 를
@@ -119,5 +121,6 @@ PR 마다 두 워크플로우가 돈다 — 둘 다 Claude 기반이고 ubuntu �
 
 - 설정 순서·서버 계약: `docs/auth/00~08` (00 이 진입점)
 - API 도메인 개념·비용 원칙·서버 확장 스토리: `docs/api/00-overview.md`
+- Storage 계약·R2 전환 체크리스트·계정 전략: `docs/api/01-storage.md`
 - Purchase 백엔드 선택·통합 순서·앱 마이그레이션: `docs/purchase/00-overview.md`
 - 신규 앱 통합 안내 스킬: `.claude/skills/auth-setup`

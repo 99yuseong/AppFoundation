@@ -31,6 +31,11 @@ public struct SupabaseAPIClient: APIClient {
     /// 본인 행 특정용 서비스 유저 id 제공자. DB 직접 조작은 RLS 와 명시적 id 필터를 함께 쓴다.
     private let userIDProvider: any CurrentUserIDProviding
 
+    /// Storage 실행의 중립 계약. 조립에서 교체 주입하면 저장소 백엔드가 바뀐다
+    /// (기본 Supabase Storage). 서명 URL 캐시가 이 인스턴스 수명을 따르므로
+    /// 요청마다 만들지 않고 여기 하나를 소유한다.
+    private let storage: any StorageClient
+
     /// 서버 에러 → 앱 도메인 에러 훅. nil 반환 시 중립 `APIError` 폴백.
     ///
     /// `details` 는 실패 본문에 `code`/`message` 밖의 부가 필드가 실려 온 경우에만
@@ -48,12 +53,14 @@ public struct SupabaseAPIClient: APIClient {
     public init(
         client: SupabaseClient,
         userIDProvider: (any CurrentUserIDProviding)? = nil,
+        storage: (any StorageClient)? = nil,
         mapServerError: (
             @Sendable (_ code: String, _ message: String, _ details: ServerErrorDetails?) -> (any Error)?
         )? = nil
     ) {
         self.client = client
         self.userIDProvider = userIDProvider ?? SupabaseSessionUserIDProvider(client: client)
+        self.storage = storage ?? SupabaseStorageClient(client: client)
         self.mapServerError = mapServerError
     }
 
@@ -65,11 +72,13 @@ public struct SupabaseAPIClient: APIClient {
     public static func withSimpleErrorMapping(
         client: SupabaseClient,
         userIDProvider: (any CurrentUserIDProviding)? = nil,
+        storage: (any StorageClient)? = nil,
         mapServerError: @escaping @Sendable (_ code: String, _ message: String) -> (any Error)?
     ) -> SupabaseAPIClient {
         SupabaseAPIClient(
             client: client,
             userIDProvider: userIDProvider,
+            storage: storage,
             mapServerError: { code, message, _ in mapServerError(code, message) }
         )
     }
@@ -222,7 +231,7 @@ public struct SupabaseAPIClient: APIClient {
             throw APIError.server(code: "invalid_storage_endpoint", message: "\(endpoint.name) storage endpoint 타입 불일치")
         }
 
-        let context = StorageContext(client: client)
+        let context = StorageContext(client: client, storage: storage)
         do {
             return try await storageEndpoint.executeStorage(context: context, response: Response.self)
         } catch let error as StorageError {
