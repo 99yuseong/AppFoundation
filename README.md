@@ -1,58 +1,54 @@
 # AppFoundation
 
-여러 iOS 앱이 공유하는 공통 모듈 모음 (Swift Package).
-앱 타겟에는 **필요한 product 만 골라 추가**한다 — 안 쓰는 외부 SDK 는 링크되지 않는다.
+여러 iOS 앱이 공유하는 공통 모듈 모음입니다. Swift Package 하나로 관리하고,
+각 앱은 필요한 product만 골라 링크합니다 — 쓰지 않는 외부 SDK는 앱에 포함되지 않습니다.
 
-## Products
+## 설계 원칙
 
-Auth 는 3계층 — **Core**(타입·오케스트레이터·버튼) / **Providers**(credential 획득) /
-**Backends**(세션 교환) — 로 나뉘어 어느 백엔드와도 조합된다. API 도메인도 같은 구조 —
-**Core**(계약 계층 `APIKit`) / **Backends**(실행 `APIKitSupabase`). 계층은 디렉토리로
-표현하고, **product 는 외부 SDK 경계에서만** 쪼갠다(빌드 그래프를 가볍게 유지).
+- **Core / Provider / Backend 계층.** Core는 외부 SDK 없이 계약(프로토콜·타입)만 정의하고,
+  외부 SDK는 Backend product에 격리합니다. 앱은 같은 계약 위에서 백엔드만 갈아끼울 수 있습니다.
+- **product는 SDK 경계에서만 분리.** 계층 구분은 디렉토리로 표현하고, 타깃은 외부 의존이
+  갈리는 지점에서만 쪼개 빌드 그래프를 가볍게 유지합니다.
+- **개방형 확장.** provider·transport 같은 축은 닫힌 enum이 아니라 String 기반 타입이라,
+  앱이 패키지를 수정하지 않고 자체 구현을 추가할 수 있습니다.
 
-| product | 계층 | 내용 | 외부 의존성 | 상태 |
-|---|---|---|---|---|
-| `CoreKit` | — | Info.plist 설정 로더(`ConfigValues`), `TopMostPresenter`, 캐시 프리미티브(`MemoryCache`/`DiskCache`) | 없음 | ✅ |
-| `AuthKit` | Core + Backend | Auth 코어(타입·프로토콜·`DefaultAuthService`·Mock) + **로그인 버튼**(SwiftUI/UIKit, ko·en·ja) + **`RESTAuthBackend`**(자체 서버, 표준 REST 계약) | 없음 | ✅ |
-| `AuthKitApple` | Provider | Apple | 없음 (AuthenticationServices) | ✅ |
-| `AuthKitGoogle` | Provider | Google | GoogleSignIn-iOS | ✅ |
-| `AuthKitKakao` | Provider | Kakao (네이티브, OIDC) | kakao-ios-sdk | ✅ |
-| `AuthKitSupabase` | Backend | Supabase (`SupabaseAuthBackend`) | supabase-swift | ✅ |
-| `APIKit` | Core + Backend | 서버 API 계약 계층 — `APIClient`(`request`/`stream`), `Endpoint` 선언 메타데이터, 중립 `APIError`·envelope, `MockAPIClient` + **`RESTAPIClient`**(URLSession 백엔드, `.http` transport) | 없음 | ✅ |
-| `APIKitSupabase` | Backend | `SupabaseAPIClient` — EF/RPC/DB/Storage/Realtime 라우팅, `mapServerError` 훅 | supabase-swift | ✅ |
-| `ImageKit` | Core | 원격 이미지 파이프라인 — `ImageLoader`(메모리/디스크 캐시·dedup·재시도), `ImageDownsampler`, `RemoteImage`(SwiftUI)/`RemoteUIImage`(UIKit) | 없음 | ✅ |
-| `ExperimentKit` | Core | 실험(A/B)·원격 설정 계약 계층 — `ExperimentClient`, `ExperimentKey<Value>`(문자열 → 타입 변환, 실패 시 defaultValue 폴백), `InMemoryExperimentClient` | 없음 | ✅ |
-| `ExperimentKitFirebase` | Backend | `FirebaseExperimentClient` — Firebase A/B Testing 이 Remote Config 에 배정한 값 제공 | firebase-ios-sdk | ✅ |
-| `AdKit` | Core | 광고 계약 계층 — 로더 계약(`InterstitialAdLoading`/`RewardedAdLoading`/`NativeAd~Loading` 계열), `NativeAdLayoutUIView`(앱 커스텀 레이아웃 베이스)·`NativeAdContent`, `AdConditionChecker`(구독 게이트), `ATTAuthorization`, Mock | 없음 (AppTrackingTransparency) | ✅ |
-| `AdKitAdMob` | Backend | AdMob 실행 — placement-generic 로더(단발/캐시/상주/로테이션 네이티브, 전면, 보상형+SSV), `AdMobNativeAdHostUIView`/`AdMobNativeAdHostView`, **전면형 네이티브 기본 템플릿**(UIKit/SwiftUI, `set~` 빌더) | GoogleMobileAds | ✅ |
-| `PurchaseKit` | Core + Backend | 인앱결제 계약 — `PurchaseService`(configure/signIn/상품/구매/복원/sync/오퍼코드), SDK-free 모델(`ProductInfo`·`CustomerInfo`·`EntitlementCatalog`), `PurchaseSessionManager`(identity 수명주기·직렬화), `MockPurchaseService` + **`StoreKitPurchaseService`**(StoreKit 2 순정) | 없음 (StoreKit) | ✅ |
-| `PurchaseKitRevenueCat` | Backend | `RevenueCatPurchaseService` — offerings·entitlement·attribution 연동 | purchases-ios-spm | ✅ |
-| `AnalyticsKit` / Push | — | — | — | 예정 |
+## 모듈
 
-## 빠른 시작 (Auth)
+| Product | 설명 | 외부 SDK |
+|---|---|---|
+| `CoreKit` | 공통 기반 — Info.plist 설정 로더, 메모리/디스크 캐시, 최상단 프리젠터 | – |
+| `AuthKit` | 소셜 로그인 코어 — 서비스 오케스트레이터, 로그인 버튼(SwiftUI/UIKit, ko·en·ja), REST 백엔드 | – |
+| `AuthKitApple` | Apple 로그인 provider | – |
+| `AuthKitGoogle` | Google 로그인 provider | GoogleSignIn |
+| `AuthKitKakao` | Kakao 로그인 provider (네이티브, OIDC) | KakaoSDK |
+| `AuthKitSupabase` | Supabase 세션 교환 백엔드 | supabase-swift |
+| `APIKit` | 서버 API 계약 — `Endpoint` 선언, `APIClient`, URLSession 실행 포함 | – |
+| `APIKitSupabase` | Edge Function·RPC·DB·Storage·Realtime 실행 | supabase-swift |
+| `ImageKit` | 원격 이미지 파이프라인 — 다운샘플링, 캐시, `RemoteImage` 뷰 | – |
+| `ExperimentKit` | A/B 실험·원격 설정 계약 | – |
+| `ExperimentKitFirebase` | Firebase Remote Config 어댑터 | firebase-ios-sdk |
+| `AdKit` | 광고 계약 — 전면·보상형·네이티브 로더, 레이아웃 베이스, ATT | – |
+| `AdKitAdMob` | AdMob 실행 — 로더, 네이티브 광고 호스트·기본 템플릿 | GoogleMobileAds |
+| `PurchaseKit` | 인앱결제 — 서비스 계약, SDK-free 모델, StoreKit 2 구현 포함 | – |
+| `PurchaseKitRevenueCat` | RevenueCat 백엔드 | purchases-ios |
 
-1. **콘솔 설정**: [docs/auth/00-overview.md](docs/auth/00-overview.md) 의 체크리스트를
-   따라 Apple / Kakao / Google / Supabase 를 세팅한다.
-2. **SPM 추가**: `git@github.com:{계정}/AppFoundation.git` →
-   `AuthKit` + `AuthKitSupabase` + 사용하는 provider product
-   (`AuthKitApple` / `AuthKitGoogle` / `AuthKitKakao` — 대칭 규칙).
-3. **조립**:
+## 빠른 시작 — 소셜 로그인
+
+SPM으로 `AuthKit` + 백엔드 + 사용할 provider product를 추가하고 조립합니다.
 
 ```swift
 let authService: any AuthService = DefaultAuthService(
     backend: SupabaseAuthBackend(
-        client: client,   // 앱 전역 SupabaseClient 하나를 주입
+        client: client,
         configuration: .init(supabaseURL: supabaseURL, apiKey: supabaseKey)
     ),
-    // 주입 순서 = 버튼 노출 순서. 버튼 디자인도 provider 가 소유 — 생성자로 오버라이드.
-    providers: [AppleAuthProvider(), KakaoAuthProvider()]
+    providers: [AppleAuthProvider(), KakaoAuthProvider()]  // 주입 순서 = 버튼 노출 순서
 )
 
 let result = try await authService.signIn(with: .apple, presenter: nil)
 ```
 
-로그인 버튼 (브랜드 스펙 + ko/en/ja, SwiftUI/UIKit) — 조립 시 등록한 provider 만
-노출된다:
+로그인 버튼은 조립 시 등록한 provider만 노출합니다.
 
 ```swift
 SocialLoginButtonStack(options: authService.loginOptions) { provider in
@@ -62,26 +58,8 @@ SocialLoginButtonStack(options: authService.loginOptions) { provider in
 .setIsLoading($isLoading)
 ```
 
-상세: [docs/auth/05-app-integration.md](docs/auth/05-app-integration.md) ·
-자체 서버·커스텀 provider: [docs/auth/08-custom-backend.md](docs/auth/08-custom-backend.md) ·
-동작 데모: [Examples/AuthSample](Examples/AuthSample/README.md)
-
-## Claude 스킬로 세팅 안내 받기
-
-이 repo 에는 신규 앱 통합을 안내하는 Claude Code 스킬이 포함돼 있다.
-앱 프로젝트에서:
-
-```bash
-ln -s {AppFoundation 클론 경로}/.claude/skills/auth-setup .claude/skills/auth-setup
-```
-
-이후 `/auth-setup` 을 실행하면 provider 선택부터 콘솔 설정·코드 조립까지 순서대로 안내한다.
-
-## 회원탈퇴 (표준: 재인증형 하이브리드)
-
-`supabase/functions/account-withdraw` 템플릿을 배포하면 Apple/Google revoke +
-Kakao unlink + 계정 삭제가 한 번에 처리된다.
-상세: [docs/auth/06-edge-functions.md](docs/auth/06-edge-functions.md)
+콘솔 설정부터 회원탈퇴 처리까지의 전체 순서는 [docs/auth](docs/auth/00-overview.md)에,
+동작하는 데모는 [Examples/AuthSample](Examples/AuthSample/README.md)에 있습니다.
 
 ## 개발
 
@@ -92,10 +70,19 @@ xcodebuild build -scheme AppFoundation-Package -destination 'generic/platform=iO
 xcodebuild test -scheme AppFoundation-Package -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
-- swift-tools 6.2 / iOS 17+ / Swift 6 모드 (`AuthKitKakao`·`AdKitAdMob` 만 v5 — 각각 KakaoSDK·GMA 호환)
-- 로컬 개발 시 앱 workspace 에 클론 폴더를 드래그하면 원격 패키지를 오버라이드한다
+- swift-tools 6.2 / iOS 17+ / Swift 6 모드 (SDK 호환 문제로 `AuthKitKakao`·`AdKitAdMob`만 v5)
+- 로컬 개발 시 앱 workspace에 클론 폴더를 드래그하면 원격 패키지를 오버라이드합니다
+- 버전은 전역 semver 태그 하나로 관리합니다 — [CHANGELOG.md](CHANGELOG.md)
 
-## 버전
+## 문서
 
-전역 semver 태그 (`0.1.0` …). 멀티 모듈 단일 repo 라 모듈별 태그는 쓰지 않는다.
-변경 이력: [CHANGELOG.md](CHANGELOG.md)
+| | |
+|---|---|
+| [docs/auth](docs/auth/00-overview.md) | 콘솔 설정 체크리스트, 앱 통합, 회원탈퇴 Edge Function, 커스텀 백엔드 |
+| [docs/api](docs/api/00-overview.md) | API 도메인 개념과 서버 확장 스토리 |
+| [docs/ad](docs/ad/00-overview.md) | 광고 도메인 구조와 AdMob 통합 |
+| [docs/purchase](docs/purchase/00-overview.md) | 결제 백엔드 선택 기준과 앱 마이그레이션 |
+| [Examples](Examples) | AuthSample · AdSample 데모 앱 |
+
+신규 앱에 로그인을 붙일 때는 동봉된 Claude Code 스킬(`.claude/skills/auth-setup`)을
+앱 프로젝트에 심볼릭 링크하고 `/auth-setup`을 실행하면 설정 순서를 안내받을 수 있습니다.
