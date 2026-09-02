@@ -5,7 +5,12 @@
 //  오브젝트 저장소 실행의 중립 계약. Supabase Storage ↔ Cloudflare R2 교체가
 //  조립 한 줄이 되도록, 호출부(endpoint·표시 계층)는 이 계약만 본다.
 //  APIClient 의 verb 금지 원칙과 같은 이유로 연산을 최소로 유지한다 —
-//  실사용이 증명된 upload/url 둘뿐이며, delete/list 는 필요가 생길 때 추가한다.
+//  실사용이 증명된 upload/url/delete 뿐이며, list 는 필요가 생길 때 추가한다.
+//
+//  delete 는 경로 버저닝(불변 경로 캐시 전략)이 만드는 구 오브젝트 정리를 위해
+//  추가됐다 — 같은 리소스의 새 버전이 새 path 를 받으므로(캐시 무효화 불필요),
+//  교체·복구 시 구 path 오브젝트가 저장소에 그대로 남는다. 이 정리가 없으면
+//  Storage 사용량이 무한정 누적된다.
 //
 
 import Foundation
@@ -38,4 +43,12 @@ public protocol StorageClient: Sendable {
         for bucket: any StorageBucket.Type,
         path: String
     ) async throws -> URL
+
+    /// `path` 오브젝트를 삭제한다. 경로 버저닝으로 교체·복구된 뒤 남는 구 오브젝트를
+    /// 정리하는 용도 — 호출부는 새 버전을 정본으로 갱신한 다음 구 path 를 넘겨 부른다.
+    /// 이미 없는 path 를 지워도 에러가 아니다(idempotent, 재시도 안전).
+    func delete(
+        from bucket: any StorageBucket.Type,
+        path: String
+    ) async throws
 }

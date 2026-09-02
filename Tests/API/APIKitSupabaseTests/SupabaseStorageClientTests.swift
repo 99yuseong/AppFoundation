@@ -90,6 +90,20 @@ struct SupabaseStorageClientTests {
         _ = try await storage.url(for: PrivateBucket.self, path: "p")
         #expect(StubStorageURLProtocol.requestCount == 2)
     }
+
+    @Test("delete — 버킷 remove 엔드포인트에 path 배열로 위임")
+    func deleteDelegatesToRemove() async throws {
+        StubStorageURLProtocol.handler = { request in
+            #expect(request.httpMethod == "DELETE")
+            #expect(request.url?.path.hasSuffix("/object/private-b") == true)
+            return (200, "[]")
+        }
+        defer { StubStorageURLProtocol.reset() }
+
+        try await Self.makeStorage().delete(from: PrivateBucket.self, path: "u1/old.jpg")
+
+        #expect(StubStorageURLProtocol.requestCount == 1)
+    }
 }
 
 /// 테스트 고정 시계.

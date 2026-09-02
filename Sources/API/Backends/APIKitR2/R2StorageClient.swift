@@ -106,4 +106,32 @@ public struct R2StorageClient: StorageClient {
         cache.store(url, forBucket: bucket.bucketName, path: path, expiresIn: bucket.signedURLExpiry)
         return url
     }
+
+    /// 티켓제 삭제 — Worker 에 DELETE presign 을 받아 직접 DELETE 한다.
+    /// S3 DeleteObject 는 없는 키에도 204 를 돌려주므로 계약의 idempotent 요건을 충족한다.
+    public func delete(
+        from bucket: any StorageBucket.Type,
+        path: String
+    ) async throws {
+
+        let signed = try await signer.signedURL(
+            bucketName: bucket.bucketName,
+            path: path,
+            method: .delete,
+            contentType: nil,
+            expiresIn: Self.uploadSignExpiry
+        )
+
+        var request = URLRequest(url: signed)
+        request.httpMethod = HTTPMethod.delete.rawValue
+
+        let (_, response) = try await session.data(for: request)
+        guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) || http.statusCode == 404 else {
+            let status = (response as? HTTPURLResponse)?.statusCode ?? -1
+            throw APIError.server(
+                code: "r2_delete_failed_\(status)",
+                message: "R2 삭제 실패 \(status) — \(bucket.bucketName)/\(path)"
+            )
+        }
+    }
 }

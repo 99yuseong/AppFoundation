@@ -6,7 +6,7 @@
 ## 구조
 
 ```
-StorageClient (APIKit — 중립 계약: upload / url)
+StorageClient (APIKit — 중립 계약: upload / url / delete)
 ├── SupabaseStorageClient   (APIKitSupabase — Storage SDK, 세션 JWT + RLS)
 ├── R2StorageClient         (APIKit 내 Backends/APIKitR2 — 티켓제 presign, 의존 zero)
 └── MockStorageClient       (APIKit — 테스트)
@@ -27,7 +27,13 @@ SignedURLCache (서명 URL 재사용 — 만료 80% 창)
 | 업로드 | [인증+전송] 한 번 — SDK 가 세션 JWT 첨부, RLS 검사 | [티켓][PUT] 두 번 — Worker 서명 후 직접 PUT |
 | private 읽기 | [티켓][GET] — createSignedURL 후 순수 GET | [티켓][GET] — Worker presign 후 순수 GET |
 | public 읽기 | 고정 URL (getPublicURL) | 커스텀 도메인 + path (CDN 캐시 통과) |
+| 삭제 | [인증+전송] 한 번 — SDK remove, RLS 검사 | [티켓][DELETE] 두 번 — Worker 서명 후 직접 DELETE |
 | 권한 정책 | storage RLS (SQL 선언) | Worker 코드 — `path` 접두 = 토큰 `sub` |
+
+삭제는 **경로 버저닝**과 짝이다 — 같은 리소스의 새 버전은 새 path(`cover_{epoch}.jpg`)
+를 받아 어떤 캐시 계층도 스테일해지지 않는 대신, 교체·복구 뒤 구 path 오브젝트가
+남는다. 호출부는 새 path 를 정본으로 갱신한 다음 구 path 를 `delete` 로 정리한다.
+없는 path 삭제는 에러가 아니다(idempotent — 재시도 안전).
 
 서명 URL 은 발급마다 달라지는 휘발성 파생물이다 — 표시 캐시 키는 path 로,
 전송에만 서명 URL 을 쓴다. `SignedURLCache` 가 만료 80% 까지 재사용해 서명

@@ -158,6 +158,47 @@ struct R2StorageClientTests {
         }
     }
 
+    @Test("delete — DELETE 서명 요청 후 presigned DELETE, 없는 키(404)도 성공")
+    func deleteTwoStep() async throws {
+        let log = RequestLog()
+        StubRESTURLProtocol.handler = { request in
+            log.append(request)
+            if request.url?.host == Self.workerURL.host {
+                let body = try JSONDecoder().decode(WireRequest.self, from: request.bodyData ?? Data())
+                #expect(body.items.first?.method == "DELETE")
+                #expect(body.items.first?.path == "u1/old.jpg")
+                #expect(body.items.first?.contentType == nil)
+                return (200, #"{"urls":[{"url":"https://acc.r2.cloudflarestorage.com/private-b/u1/old.jpg?X-Amz-Signature=sig","expiresAt":"2026-01-01T00:00:00Z"}]}"#)
+            }
+            #expect(request.httpMethod == "DELETE")
+            #expect(request.url?.query?.contains("X-Amz-Signature") == true)
+            return (404, "")   // 이미 없는 키 — idempotent 요건상 성공으로 본다
+        }
+        defer { StubRESTURLProtocol.handler = nil }
+
+        try await Self.makeClient().delete(from: PrivateBucket.self, path: "u1/old.jpg")
+
+        #expect(log.requests.count == 2)
+    }
+
+    @Test("presigned DELETE 실패 — 상태코드 기반 중립 에러")
+    func deleteFailure() async {
+        StubRESTURLProtocol.handler = { request in
+            if request.url?.host == Self.workerURL.host {
+                return (200, #"{"urls":[{"url":"https://acc.r2.cloudflarestorage.com/private-b/p?X-Amz-Signature=sig","expiresAt":"2026-01-01T00:00:00Z"}]}"#)
+            }
+            return (403, "")
+        }
+        defer { StubRESTURLProtocol.handler = nil }
+
+        await #expect(throws: APIError.server(
+            code: "r2_delete_failed_403",
+            message: "R2 삭제 실패 403 — private-b/p"
+        )) {
+            try await Self.makeClient().delete(from: PrivateBucket.self, path: "p")
+        }
+    }
+
     @Test("presigned PUT 실패 — 상태코드 기반 중립 에러")
     func uploadPUTFailure() async {
         StubRESTURLProtocol.handler = { request in

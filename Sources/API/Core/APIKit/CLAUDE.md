@@ -14,7 +14,8 @@
   백엔드가 채우고 `mapServerError` 훅이 `decode(_:)`/`string(forKey:)` 로 읽는다
 - `EndpointKey` — name+transport 식별자 (목/기록용), `MockAPIClient`, `EmptyResponse`
 - `CurrentUserIDProviding` — 본인 행 특정용 유저 id 제공 인터페이스
-- **Storage/** — `StorageClient`(오브젝트 저장소 실행 계약: upload/url),
+- **Storage/** — `StorageClient`(오브젝트 저장소 실행 계약: upload/url/delete —
+  delete 는 경로 버저닝이 남긴 구 오브젝트 정리용, idempotent),
   `StorageBucket`(버킷명·공개 여부·`signedURLExpiry` 만료 정책 디스크립터),
   `SignedURLCache`(서명 URL 만료 80% 창 재사용 — 서명 요청 절감), `MockStorageClient`.
   구현은 `SupabaseStorageClient`(APIKitSupabase)와 `R2StorageClient`(Backends/APIKitR2 —

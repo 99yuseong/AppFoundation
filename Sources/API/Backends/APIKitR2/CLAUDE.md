@@ -5,8 +5,8 @@ Cloudflare R2 백엔드 — `StorageClient` 의 R2 실구현. 외부 의존 zero
 
 ## 공개 API
 
-- `R2StorageClient` — `StorageClient` 구현. 업로드·다운로드 모두 티켓제
-  (signer 에게 presigned URL 을 받아 URLSession 직접 PUT/GET). private 읽기 URL 은
+- `R2StorageClient` — `StorageClient` 구현. 업로드·다운로드·삭제 모두 티켓제
+  (signer 에게 presigned URL 을 받아 URLSession 직접 PUT/GET/DELETE). private 읽기 URL 은
   `SignedURLCache` 로 재사용. public 버킷 고정 URL 은 `publicBaseURLs`(버킷명 →
   커스텀 도메인) 생성자 설정에서 파생.
 - `R2URLSigning` — 서명 발급 계약. 앱에 S3 키를 심지 않기 위한 경계.

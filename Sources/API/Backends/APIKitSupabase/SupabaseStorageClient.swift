@@ -62,4 +62,14 @@ public struct SupabaseStorageClient: StorageClient {
         cache.store(url, forBucket: bucket.bucketName, path: path, expiresIn: bucket.signedURLExpiry)
         return url
     }
+
+    /// 없는 path 는 SDK 가 빈 결과로 응답한다(에러 아님) — 계약의 idempotent 요건을 충족.
+    public func delete(
+        from bucket: any StorageBucket.Type,
+        path: String
+    ) async throws {
+        _ = try await client.storage
+            .from(bucket.bucketName)
+            .remove(paths: [path])
+    }
 }

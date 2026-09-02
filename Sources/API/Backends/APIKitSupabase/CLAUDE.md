@@ -21,7 +21,7 @@ supabase-swift 에 의존한다.
   `StorageContext` 는 `storage: any StorageClient`(중립 계약)도 실어 나른다 —
   storage 실행은 이 경유를 권장 (저장소 교체가 조립 주입으로 끝난다)
 - `SupabaseStorageClient` — `StorageClient` 의 Supabase 실구현 (upsert 업로드,
-  public/서명 URL 분기, `SignedURLCache` 경유). supabase-swift 의 동명 타입
+  public/서명 URL 분기, `SignedURLCache` 경유, remove 삭제). supabase-swift 의 동명 타입
   (client.storage)과 겹치므로 필요 시 `APIKitSupabase.` 한정
 - `SupabaseTable`/`SupabaseBucket` — 테이블·버킷명 단일 출처 네임스페이스 프로토콜.
   `SupabaseBucket` 은 APIKit `StorageBucket` 을 상속(기존 준수 타입 무수정 승격)

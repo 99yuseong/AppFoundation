@@ -25,16 +25,26 @@ public final class MockStorageClient: StorageClient, @unchecked Sendable {
         public let path: String
     }
 
+    /// 기록된 삭제 요청 1건.
+    public struct Deletion: Sendable {
+        public let bucketName: String
+        public let path: String
+    }
+
     private let failure: (any Error)?
     private let lock = NSLock()
     private var _uploads: [Upload] = []
     private var _urlLookups: [URLLookup] = []
+    private var _deletions: [Deletion] = []
 
     /// 기록된 업로드 (순서 보존).
     public var uploads: [Upload] { lock.withLock { _uploads } }
 
     /// 기록된 URL 요청 (순서 보존).
     public var urlLookups: [URLLookup] { lock.withLock { _urlLookups } }
+
+    /// 기록된 삭제 요청 (순서 보존).
+    public var deletions: [Deletion] { lock.withLock { _deletions } }
 
     /// - Parameter failure: 지정하면 모든 호출이 기록 후 이 에러를 던진다.
     public init(failure: (any Error)? = nil) {
@@ -69,5 +79,16 @@ public final class MockStorageClient: StorageClient, @unchecked Sendable {
             throw APIError.invalidRequest(message: "MockStorageClient — path 로 URL 을 만들 수 없음: \(path)")
         }
         return url
+    }
+
+    /// 호출을 기록만 한다 — 실제로 지우는 오브젝트가 없다(테스트 대역).
+    public func delete(
+        from bucket: any StorageBucket.Type,
+        path: String
+    ) async throws {
+        lock.withLock {
+            _deletions.append(Deletion(bucketName: bucket.bucketName, path: path))
+        }
+        if let failure { throw failure }
     }
 }
