@@ -130,11 +130,13 @@ let package = Package(
         // Core + REST 백엔드를 한 타깃으로 묶는다 (AuthKit 과 같은 구조 — 둘 다 의존 zero).
         .target(
             name: "APIKit",
+            dependencies: ["CoreKit"],
             path: "Sources/API",
             exclude: [
                 "Backends/APIKitSupabase",      // 별도 타깃 (supabase-swift)
                 "Core/APIKit/CLAUDE.md", "Core/APIKit/AGENTS.md",
                 "Backends/APIKitREST/CLAUDE.md", "Backends/APIKitREST/AGENTS.md",
+                "Backends/APIKitR2/CLAUDE.md", "Backends/APIKitR2/AGENTS.md",
             ],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),

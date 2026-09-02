@@ -1,0 +1,37 @@
+# storage-sign — 배포 설정 (AppFoundation 템플릿)
+#
+# 코드는 공통, 인스턴스는 앱마다 하나 — [env.<app>] 로 분리한다.
+# account_id 는 그 앱 도메인 zone 이 있는 Cloudflare 계정. 무료 한도(R2 10GB·
+# Workers 10만 req/일)가 계정 단위라 **앱별 계정이 기본 권고**다
+# (근거·전환 절차: docs/api/01-storage.md).
+#
+# 배포:
+#   wrangler secret put SUPABASE_JWT_SECRET  --env <app>
+#   wrangler secret put R2_ACCESS_KEY_ID     --env <app>
+#   wrangler secret put R2_SECRET_ACCESS_KEY --env <app>
+#   wrangler deploy --env <app>
+
+name = "storage-sign"
+main = "src/index.ts"
+compatibility_date = "2026-08-01"
+
+# 기본(무-env) 인스턴스 = StorageSample 리허설용
+[vars]
+R2_ACCOUNT_ID = "d04dc00687a5e68a732edb45122b1aa1"
+# JWT 검증 모드 — SUPABASE_URL 이 있으면 JWKS(새 비대칭 키), 없으면
+# secret SUPABASE_JWT_SECRET(legacy HS256) 필요. src/index.ts 상단 주석 참조.
+SUPABASE_URL = "https://veqfvrheichpixzhuevd.supabase.co"
+
+# ── 앱별 인스턴스 (예시 — 실제 값은 각 앱 세팅 시 채운다) ──
+
+[env.doran]
+name = "doran-storage-sign"
+# account_id = "<Doran 도메인 zone 이 있는 계정 id>"
+# [env.doran.vars]
+# R2_ACCOUNT_ID = "<위 계정 id — presign 대상 R2 엔드포인트>"
+
+[env.tumtum]
+name = "tumtum-storage-sign"
+# account_id = "<TumTumRead 계정 id>"
+# [env.tumtum.vars]
+# R2_ACCOUNT_ID = "<...>"

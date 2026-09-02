@@ -120,3 +120,7 @@ SupabaseAPIClient.withSimpleErrorMapping(client: supabase) { code, _ in
 .product(name: "APIKit", package: "AppFoundation"),          // Repository 계층 (RESTAPIClient 포함)
 .product(name: "APIKitSupabase", package: "AppFoundation"),  // Composition Root + endpoint 구현
 ```
+
+## 관련 문서
+
+- Storage 계약(업로드/표시 URL)·R2 전환 체크리스트·계정 전략: [01-storage.md](01-storage.md)

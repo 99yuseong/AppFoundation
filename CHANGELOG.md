@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.10.0 (2026-08-25)
+
+### 추가 — Storage 계약 승격 + Cloudflare R2 경로
+- `APIKit`: `StorageClient` 중립 계약(upload/url/delete — 실사용 3연산만, YAGNI.
+  delete 는 경로 버저닝이 남긴 구 오브젝트 정리용, idempotent) ·
+  `StorageBucket`(버킷명·공개 여부·`signedURLExpiry` 만료 정책 소유) ·
+  `SignedURLCache`(만료 80% 창 재사용 — 서명 요청 절감) · `MockStorageClient`.
+  APIKit 타깃에 CoreKit 의존 추가(MemoryCache 재사용)
+- `APIKitSupabase`: `SupabaseStorageClient`(실구현, 서명 캐시 경유).
+  `SupabaseBucket` 은 `StorageBucket` 상속으로 승격(기존 준수 타입 무수정).
+  `StorageClient` 는 endpoint 흐름(`StorageContext`)에 싣지 않고 조립에서
+  Repository 로 직주입한다 — Supabase·R2 소비 경로 일원화 (기존 표면 불변)
+- `APIKitR2` (APIKit 타깃 폴더 — 의존 zero, 새 product 없음): `R2StorageClient`
+  (티켓제 — presign 후 직접 PUT/GET/DELETE, 앱에 S3 키 없음), `R2URLSigning` 계약,
+  `WorkerR2Signer`(배열 기반 와이어 계약 — Worker 템플릿과 같은 태그로 버전)
+- `cloudflare/workers/storage-sign` Worker 템플릿: Supabase JWT 검증 + 본인 폴더
+  검사(storage RLS 대응물) + SigV4 presign(GET/PUT/DELETE). `[env.*]` 로 앱별
+  인스턴스·계정 분리. JWT 검증은 이중 모드 — 새 비대칭 키(ES256) 프로젝트는
+  JWKS(`SUPABASE_URL` var), legacy 는 HS256(`SUPABASE_JWT_SECRET` 시크릿, 설정 시 우선)
+- `docs/api/01-storage.md` — 구조·메커니즘·R2 전환 체크리스트·계정(쿼터) 전략·
+  Doran 마이그레이션 노트
+
+### 참고
+- supabase-swift 의 `SupabaseStorageClient`(client.storage 타입)와 이름이 겹친다 —
+  두 모듈을 import 한 파일에서 직접 쓸 때는 `APIKitSupabase.SupabaseStorageClient` 로 한정
+
 ## 0.9.0 (2026-08-24)
 
 ### 추가 — Purchase 도메인 (Doran Packages/Purchase + TumTumRead Purchase 통합 이식)

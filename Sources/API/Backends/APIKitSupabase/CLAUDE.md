@@ -18,7 +18,11 @@ supabase-swift 에 의존한다.
     이 자기 자신으로 해소돼 무한 재귀가 된다 — 그래서 이름을 달리한 팩토리다)
 - `DatabaseEndpoint`/`StorageEndpoint`/`RealtimeEndpoint` + 각 Context — 엔드포인트가
   SDK 로 직접 실행하는 경로의 프로토콜 (Context 가 SupabaseClient 노출)
-- `SupabaseTable`/`SupabaseBucket` — 테이블·버킷명 단일 출처 네임스페이스 프로토콜
+- `SupabaseStorageClient` — `StorageClient` 의 Supabase 실구현 (upsert 업로드,
+  public/서명 URL 분기, `SignedURLCache` 경유, remove 삭제). supabase-swift 의 동명 타입
+  (client.storage)과 겹치므로 필요 시 `APIKitSupabase.` 한정
+- `SupabaseTable`/`SupabaseBucket` — 테이블·버킷명 단일 출처 네임스페이스 프로토콜.
+  `SupabaseBucket` 은 APIKit `StorageBucket` 을 상속(기존 준수 타입 무수정 승격)
 - `SupabaseSessionUserIDProvider` — 세션 uid 기본 구현 (서비스 id 별도인 앱은 자체 주입)
 
 ## 불변 규칙
@@ -29,6 +33,10 @@ supabase-swift 에 의존한다.
 - **엔드포인트 안의 SDK 로직은 의도된 임시 구조** — EF 호출 수 제한(비용)을 피하는
   클라 조합 경로다. Context 의 SupabaseClient 노출을 추상화로 가리지 않는다(SDK 전
   기능 활용이 원칙). 자체 서버 확장 시 이 로직이 서버로 이동한다.
+- **storage 중립 계약은 endpoint 흐름에 싣지 않는다** — `StorageClient` 는 조립에서
+  Repository 로 직주입하는 독립 서비스다(소비 경로 일원화 — Supabase·R2 동일).
+  `StorageContext` 에 storage 를 다시 넣지 말 것. 저장소 교체는 조립의 구현 대입
+  한 줄이다 (`docs/api/01-storage.md`).
 - 앱 전용 에러 코드(제재 등)를 여기 하드코딩하지 않는다 — `mapServerError` 훅 소관.
 - `method`/`task` 는 전송에 강제하지 않는다 — EF/RPC 는 `.json` task 만 소비, method 는
   로그 가시화용.
@@ -42,3 +50,4 @@ supabase-swift 에 의존한다.
 ## 관련 문서
 
 - 개념·비용 원칙·서버 확장 스토리: `docs/api/00-overview.md`
+- Storage 계약·R2 전환·계정 전략: `docs/api/01-storage.md`
