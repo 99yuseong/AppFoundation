@@ -12,19 +12,28 @@
  * 역할: Supabase JWT 검증 → 본인 폴더 검사(path 접두 = 토큰 sub — storage RLS 의
  * 대응물) → SigV4 presign. R2 키는 이 Worker 밖으로 나가지 않는다.
  *
- * 시크릿(wrangler secret put): SUPABASE_JWT_SECRET, R2_ACCESS_KEY_ID,
- * R2_SECRET_ACCESS_KEY / vars: R2_ACCOUNT_ID
+ * JWT 검증은 프로젝트의 키 체계에 따라 둘 중 하나로 설정한다:
+ *   - 새 비대칭 키(ES256/RS256, 2025+ 신규 프로젝트 기본): vars 에 SUPABASE_URL —
+ *     JWKS(/auth/v1/.well-known/jwks.json) 공개키로 검증. 시크릿 불필요.
+ *   - legacy HS256: wrangler secret put SUPABASE_JWT_SECRET (설정돼 있으면 우선)
+ *
+ * 시크릿(wrangler secret put): R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY,
+ * (legacy 만) SUPABASE_JWT_SECRET / vars: R2_ACCOUNT_ID, (JWKS 만) SUPABASE_URL
  */
 
 import { AwsClient } from "aws4fetch";
-import { jwtVerify } from "jose";
+import { createRemoteJWKSet, jwtVerify } from "jose";
 
 interface Env {
-  SUPABASE_JWT_SECRET: string;
+  SUPABASE_URL?: string;          // JWKS 검증 (새 비대칭 키)
+  SUPABASE_JWT_SECRET?: string;   // legacy HS256 — 설정돼 있으면 우선
   R2_ACCESS_KEY_ID: string;
   R2_SECRET_ACCESS_KEY: string;
   R2_ACCOUNT_ID: string;
 }
+
+// JWKS 는 모듈 스코프에 캐시 — jose 가 키 셋을 재사용해 요청마다 fetch 하지 않는다.
+let jwks: ReturnType<typeof createRemoteJWKSet> | undefined;
 
 interface SignItem {
   bucket: string;
@@ -36,7 +45,7 @@ interface SignItem {
 
 const MAX_ITEMS = 50;               // 배치 상한 — 목록 화면 1페이지 분량
 const MAX_EXPIRES_IN = 24 * 3600;   // 서명 만료 상한(초)
-const ALLOWED_METHODS = new Set(["GET", "PUT"]);
+const ALLOWED_METHODS = new Set(["GET", "PUT", "DELETE"]);   // DELETE — 경로 버저닝이 남긴 구 오브젝트 정리
 
 function fail(status: number, code: string, message: string): Response {
   return Response.json({ ok: false, error: { code, message } }, { status });
@@ -49,10 +58,19 @@ export default {
     }
 
     // ── 1. Supabase JWT 검증 ──
+    if (!env.SUPABASE_JWT_SECRET && !env.SUPABASE_URL) {
+      return fail(500, "misconfigured", "SUPABASE_JWT_SECRET(legacy) 또는 SUPABASE_URL(JWKS) 필요");
+    }
     const token = (request.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
     let sub: string;
     try {
-      const { payload } = await jwtVerify(token, new TextEncoder().encode(env.SUPABASE_JWT_SECRET));
+      let payload;
+      if (env.SUPABASE_JWT_SECRET) {
+        ({ payload } = await jwtVerify(token, new TextEncoder().encode(env.SUPABASE_JWT_SECRET)));
+      } else {
+        jwks ??= createRemoteJWKSet(new URL(`${env.SUPABASE_URL}/auth/v1/.well-known/jwks.json`));
+        ({ payload } = await jwtVerify(token, jwks));
+      }
       if (typeof payload.sub !== "string" || payload.sub.length === 0) throw new Error("no sub");
       sub = payload.sub;
     } catch {
@@ -74,7 +92,7 @@ export default {
 
     for (const item of items) {
       if (!item.bucket || !item.path || !ALLOWED_METHODS.has(item.method)) {
-        return fail(400, "invalid_request", "bucket/path/method(GET|PUT) 필수");
+        return fail(400, "invalid_request", "bucket/path/method(GET|PUT|DELETE) 필수");
       }
       if (!Number.isFinite(item.expiresIn) || item.expiresIn <= 0 || item.expiresIn > MAX_EXPIRES_IN) {
         return fail(400, "invalid_request", `expiresIn 은 1..${MAX_EXPIRES_IN}`);
