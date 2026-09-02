@@ -32,8 +32,8 @@ extension SupabaseBucket {
     /// `path` 와 보통 같지만, 서버가 정규화할 수 있으니 이 반환값을 DB 저장 정본으로 쓴다.
     ///
     /// 유지 사유(호환): 기존 앱 endpoint 가 이 시그니처를 호출한다. 신규 코드는
-    /// `StorageContext.storage.upload(_:to:path:contentType:)` 경유를 권장 — 저장소
-    /// 교체(R2) 시 무수정인 경로는 그쪽이다.
+    /// 조립에서 Repository 로 직주입한 `StorageClient.upload(_:to:path:contentType:)`
+    /// 를 쓴다 — 저장소 교체(R2) 시 무수정인 경로는 그쪽이다.
     @discardableResult
     public static func upload(
         _ data: Data,
