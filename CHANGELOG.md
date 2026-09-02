@@ -9,9 +9,9 @@
   `SignedURLCache`(만료 80% 창 재사용 — 서명 요청 절감) · `MockStorageClient`.
   APIKit 타깃에 CoreKit 의존 추가(MemoryCache 재사용)
 - `APIKitSupabase`: `SupabaseStorageClient`(실구현, 서명 캐시 경유).
-  `SupabaseBucket` 은 `StorageBucket` 상속으로 승격(기존 준수 타입 무수정),
-  `StorageContext` 에 `storage: any StorageClient` 추가(`client` 유지 — additive),
-  `SupabaseAPIClient.init`/`withSimpleErrorMapping` 에 `storage` 주입 파라미터 추가
+  `SupabaseBucket` 은 `StorageBucket` 상속으로 승격(기존 준수 타입 무수정).
+  `StorageClient` 는 endpoint 흐름(`StorageContext`)에 싣지 않고 조립에서
+  Repository 로 직주입한다 — Supabase·R2 소비 경로 일원화 (기존 표면 불변)
 - `APIKitR2` (APIKit 타깃 폴더 — 의존 zero, 새 product 없음): `R2StorageClient`
   (티켓제 — presign 후 직접 PUT/GET/DELETE, 앱에 S3 키 없음), `R2URLSigning` 계약,
   `WorkerR2Signer`(배열 기반 와이어 계약 — Worker 템플릿과 같은 태그로 버전)

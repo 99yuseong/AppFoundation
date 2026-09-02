@@ -16,7 +16,10 @@ SignedURLCache (서명 URL 재사용 — 만료 80% 창)
 ```
 
 - 앱은 버킷을 `StorageBucket`(또는 `SupabaseBucket` — 이를 상속) 준수 타입으로
-  선언하고, endpoint 는 `StorageContext.storage` 로만 실행한다.
+  선언하고, `StorageClient` 를 조립에서 Repository 로 직주입해 쓴다.
+- **소비 경로는 하나다** — storage 는 endpoint 실행 흐름(`StorageContext`)에 싣지
+  않는다. `APIClient`(서버 API)와 `StorageClient`(오브젝트 저장소)는 나란히 주입되는
+  별개 서비스고, 어느 저장소 구현이든 같은 문으로 들어온다.
 - **DB 에는 URL 이 아니라 path 를 저장한다** — upload 반환값이 정본. URL 은
   `url(for:path:)` 로 그때그때 파생하므로, 저장소를 바꿔도 데이터는 그대로다.
 
@@ -41,20 +44,21 @@ SignedURLCache (서명 URL 재사용 — 만료 80% 창)
 
 ## 조립
 
-```swift
-// 기본 — Supabase Storage (주입 생략 시 자동)
-let api = SupabaseAPIClient(client: supabase)
+`APIClient` 와 별개로 `StorageClient` 하나를 조립해 Repository 에 주입한다.
 
-// R2 전환 — 이 한 줄이 교체의 전부
-let api = SupabaseAPIClient(
-    client: supabase,
-    storage: R2StorageClient(
-        signer: WorkerR2Signer(
-            workerURL: URL(string: "https://doran-storage-sign.<계정>.workers.dev")!,
-            tokenProvider: { try await supabase.auth.session.accessToken }
-        ),
-        publicBaseURLs: ["covers": URL(string: "https://cdn.doran.app")!]   // public 버킷만
-    )
+```swift
+let api = SupabaseAPIClient(client: supabase)          // 서버 API — storage 와 무관
+
+// Supabase Storage 쓸 때
+let storage: any StorageClient = SupabaseStorageClient(client: supabase)
+
+// R2 전환 — 이 대입 한 줄이 교체의 전부 (Repository 쪽 diff 0줄)
+let storage: any StorageClient = R2StorageClient(
+    signer: WorkerR2Signer(
+        workerURL: URL(string: "https://doran-storage-sign.<계정>.workers.dev")!,
+        tokenProvider: { try await supabase.auth.session.accessToken }
+    ),
+    publicBaseURLs: ["covers": URL(string: "https://cdn.doran.app")!]   // public 버킷만
 )
 ```
 
@@ -96,13 +100,24 @@ additive 승격이라 **버전만 올리면 무수정 컴파일**된다. R2 전�
 
 - 버킷 2파일: `SupabaseBucket` 준수 그대로 (+필요 시 `signedURLExpiry` 오버라이드 —
   기존 endpoint 상수를 버킷으로 이동)
-- 업로드 endpoint: `Bucket.upload(..., using: context.client)` →
-  `context.storage.upload(_, to: Bucket.self, path:, contentType:)`
-- signed URL endpoint 3파일: `context.client.storage...createSignedURL` →
-  `context.storage.url(for: Bucket.self, path:)`
+- 조립에 `StorageClient` 하나 추가(위 조립 절) 후 Repository 에 주입
+- storage 를 만지던 endpoint 로직을 Repository 로 이동 — 업로드는
+  `storage.upload(_, to: Bucket.self, path:, contentType:)`, signed URL 은
+  `storage.url(for: Bucket.self, path:)`. endpoint 흐름에는 storage 가 남지 않는다
+
+## 도메인 분리 트리거 (StorageKit 승격 시점)
+
+Storage 는 지금 APIKit 안의 서브도메인이다(타깃 경제 — 새 product·도메인 횡단
+의존 없음). 아래 중 하나가 실제로 오면 `Sources/Storage/{Core/StorageKit,
+Backends/StorageKitSupabase}` 로 들어올린다 — 소비 경로가 직주입 하나뿐이라
+이사는 폴더 이동 + 타깃 신설로 끝난다:
+
+- Storage 에 API 밖 소비자가 생길 때 (예: ImageKit 이 `StorageClient` 를 직접 물 때)
+- 연산이 list·multipart·배치 등으로 더 자라 독자 진화 속도가 분명해질 때
+- "APIKit 없이 Storage 만" 링크하려는 앱이 나올 때
 
 ## 이름 충돌 주의
 
 supabase-swift 도 `SupabaseStorageClient`(`client.storage` 의 타입)를 정의한다.
-앱이 이 타입명을 직접 쓸 일은 드물지만(주입 생략 시 기본 생성), 두 모듈을 import
-한 파일에서는 `APIKitSupabase.SupabaseStorageClient` 로 한정한다.
+조립 파일처럼 두 모듈을 import 한 곳에서는
+`APIKitSupabase.SupabaseStorageClient` 로 한정한다.
