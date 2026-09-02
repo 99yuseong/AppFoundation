@@ -12,3 +12,9 @@ Examples/*/Config.xcconfig
 node_modules/
 package-lock.json
 .wrangler/
+
+# Xcode 가 프로젝트를 열 때 자동 생성 (Package.resolved·xcuserdata 는 위에서 이미 제외)
+**/*.xcodeproj/project.xcworkspace/
+
+# Supabase CLI 캐시
+supabase/.temp/
