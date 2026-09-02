@@ -19,7 +19,8 @@
   `StorageBucket`(버킷명·공개 여부·`signedURLExpiry` 만료 정책 디스크립터),
   `SignedURLCache`(서명 URL 만료 80% 창 재사용 — 서명 요청 절감), `MockStorageClient`.
   구현은 `SupabaseStorageClient`(APIKitSupabase)와 `R2StorageClient`(Backends/APIKitR2 —
-  의존 zero 라 이 타깃 포함). 상세: `docs/api/01-storage.md`
+  의존 zero 라 이 타깃 포함). 소비는 조립에서 Repository 직주입 한 경로뿐 —
+  endpoint 흐름에 싣지 않는다. 상세: `docs/api/01-storage.md`
 
 ## 불변 규칙
 

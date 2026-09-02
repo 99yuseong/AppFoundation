@@ -69,8 +69,10 @@ let storage: any StorageClient = R2StorageClient(
 3. **CORS 설정** — 앱의 PUT/GET 허용
 4. **public 버킷이면 커스텀 도메인 연결** (같은 계정 zone 필수)
 5. **Worker 배포** — `cloudflare/workers/storage-sign` README 순서대로
-   (시크릿 3개 + `wrangler deploy --env <app>`). **자기 kit 버전 태그의 템플릿**으로
-   배포한다 — 와이어 계약이 태그 단위로 클라이언트와 짝이다 (버전 스큐 방지)
+   (R2 시크릿 2개 + JWT 검증 모드 선택: 새 비대칭 키(ES256)는 `SUPABASE_URL` var,
+   legacy 는 `SUPABASE_JWT_SECRET` 시크릿 + `wrangler deploy --env <app>`).
+   **자기 kit 버전 태그의 템플릿**으로 배포한다 — 와이어 계약이 태그 단위로
+   클라이언트와 짝이다 (버전 스큐 방지)
 6. **오브젝트 이전** — Supabase Storage 의 S3 호환 endpoint 에서
    `rclone sync` 로 R2 에 복사 (DB 는 path 정본이라 무변경)
 7. **조립 교체** — 위 R2StorageClient 주입 한 줄 → 릴리스
