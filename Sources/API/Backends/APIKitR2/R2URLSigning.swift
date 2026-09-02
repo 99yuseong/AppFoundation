@@ -9,7 +9,6 @@
 //
 
 import Foundation
-import APIKit
 
 /// R2 presigned URL 발급 계약.
 public protocol R2URLSigning: Sendable {

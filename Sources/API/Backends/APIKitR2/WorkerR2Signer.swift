@@ -17,7 +17,6 @@
 //
 
 import Foundation
-import APIKit
 
 public struct WorkerR2Signer: R2URLSigning {
 

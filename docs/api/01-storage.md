@@ -49,8 +49,8 @@ SignedURLCache (서명 URL 재사용 — 만료 80% 창)
 ```swift
 let api = SupabaseAPIClient(client: supabase)          // 서버 API — storage 와 무관
 
-// Supabase Storage 쓸 때
-let storage: any StorageClient = SupabaseStorageClient(client: supabase)
+// Supabase Storage 쓸 때 — supabase-swift 의 동명 타입과 겹치므로 모듈 한정(아래 참조)
+let storage: any StorageClient = APIKitSupabase.SupabaseStorageClient(client: supabase)
 
 // R2 전환 — 이 대입 한 줄이 교체의 전부 (Repository 쪽 diff 0줄)
 let storage: any StorageClient = R2StorageClient(
