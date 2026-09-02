@@ -1,0 +1,8 @@
+// StorageSample 로컬 설정 — 복사해서 실값을 채운다 (Config.xcconfig 는 gitignore):
+//   cp Config.xcconfig.template Config.xcconfig
+//
+// xcconfig 는 // 를 주석으로 취급하므로 URL 은 $() 로 끊어 쓴다.
+
+SUPABASE_URL = https:/$()/YOUR-PROJECT.supabase.co
+SUPABASE_ANON_KEY = YOUR-ANON-KEY
+STORAGE_WORKER_URL = https:/$()/YOUR-storage-sign.YOUR-ACCOUNT.workers.dev

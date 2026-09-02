@@ -9,11 +9,18 @@
 1. **Supabase**: 프로젝트 하나 + Auth → **anonymous sign-in 활성** (JWT 공급원)
 2. **R2**: 버킷 `storage-sample` 생성 + API 토큰 발급
 3. **Worker**: `cloudflare/workers/storage-sign` README 대로 배포
-   (시크릿 3개 — SUPABASE_JWT_SECRET 은 위 Supabase 프로젝트의 JWT secret)
+   (R2 시크릿 2개 + JWT 검증 모드 — 새 비대칭 키 프로젝트는 vars 의
+   SUPABASE_URL 만, legacy 는 시크릿 SUPABASE_JWT_SECRET)
 
 ## 실행
 
-1. `Info.plist` 의 SUPABASE_URL / SUPABASE_ANON_KEY / STORAGE_WORKER_URL 을 채운다
+1. 로컬 설정 파일 생성 — 실값은 gitignore 대상이라 커밋되지 않는다:
+   ```bash
+   cp Config.xcconfig.template Config.xcconfig
+   # SUPABASE_URL / SUPABASE_ANON_KEY / STORAGE_WORKER_URL 채우기
+   # (xcconfig 는 // 가 주석이라 URL 은 https:/$()/ 로 끊어 쓴다 — template 참조)
+   ```
+   Info.plist 는 `$(변수)` 참조만 담고, 빌드 시 xcconfig 값이 치환된다.
 2. `StorageSample.xcodeproj` 열고 실행 (로컬 패키지 참조 — 리포 루트)
 
 ## 검증 시나리오

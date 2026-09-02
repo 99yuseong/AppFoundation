@@ -4,3 +4,11 @@
 xcuserdata/
 DerivedData/
 Package.resolved
+
+# 로컬 실값 설정 (template 만 커밋)
+Examples/*/Config.xcconfig
+
+# Cloudflare Worker 로컬 산출물
+node_modules/
+package-lock.json
+.wrangler/
