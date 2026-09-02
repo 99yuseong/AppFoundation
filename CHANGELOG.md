@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.10.0 (2026-08-25)
+## 0.10.0 (2026-09-03)
 
 ### 추가 — Storage 계약 승격 + Cloudflare R2 경로
 - `APIKit`: `StorageClient` 중립 계약(upload/url/delete — 실사용 3연산만, YAGNI.
