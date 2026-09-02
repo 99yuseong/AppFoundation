@@ -3,9 +3,9 @@
 //  StorageSample
 //
 //  Composition Root — Info.plist 설정에서 SupabaseClient(익명 로그인 = JWT 공급원)와
-//  R2StorageClient(티켓제 업로드/표시)를 조립한다. 실제 앱에서는 SupabaseAPIClient
-//  의 storage 파라미터로 주입하는 한 줄이 교체의 전부다 — 여기서는 R2 경로만
-//  집중 검증하려고 StorageClient 를 직접 쓴다.
+//  R2StorageClient(티켓제 업로드/표시)를 조립한다. 실제 앱도 같은 모양이다 —
+//  APIClient 와 별개로 StorageClient 하나를 조립해 Repository 에 직주입하고,
+//  저장소 교체는 이 파일의 구현 대입 한 줄이다 (docs/api/01-storage.md 조립 절).
 //
 
 import Foundation
